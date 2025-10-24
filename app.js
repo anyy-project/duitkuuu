@@ -73,8 +73,6 @@ let totalFilteredTransactions = 0;
 // =============================================
 
 // User Modal & Switcher
-const nameInputModal = document.getElementById('nameInputModal');
-const nameInputForm = document.getElementById('nameInputForm');
 const addUserModal = document.getElementById('addUserModal');
 const addUserForm = document.getElementById('addUserForm');
 const currentUserBtn = document.getElementById('currentUserBtn');
@@ -153,77 +151,33 @@ function initUserSystem() {
         }
     }
     
-    // SIMPLE LOGIC: If no users, show modal. Otherwise, hide it and start app.
+    // If no users exist, create default user
     if (Object.keys(USERS).length === 0) {
-        // No users exist - show modal
-        nameInputModal.style.display = 'flex';
-        nameInputModal.classList.remove('hidden');
-    } else {
-        // Users exist - hide modal and start app
-        nameInputModal.style.display = 'none';
-        nameInputModal.classList.add('hidden');
-        
-        // Set current user if not set
-        if (!currentUser) {
-            currentUser = Object.keys(USERS)[0];
-            localStorage.setItem('currentUser', currentUser);
-        }
-        
-        // Initialize app
-        updateUserUI();
-        populateUserDropdown();
-        loadUserData();
-        init();
-    }
-}
-
-function showNameInputModal() {
-    nameInputModal.style.display = 'flex';
-    nameInputModal.classList.remove('hidden');
-    
-    // Focus on name input
-    setTimeout(() => {
-        const nameInput = document.getElementById('userNameInput');
-        if (nameInput) {
-            nameInput.focus();
-        }
-    }, 100);
-}
-
-function createUserFromInput() {
-    const name = document.getElementById('userNameInput').value.trim();
-    const avatar = document.getElementById('userAvatarSelect').value;
-    
-    if (!name) {
-        alert('Nama tidak boleh kosong!');
-        return;
+        createDefaultUser();
     }
     
-    // Generate unique user ID
-    const userId = generateID();
+    // Set current user if not set
+    if (!currentUser) {
+        currentUser = Object.keys(USERS)[0];
+        localStorage.setItem('currentUser', currentUser);
+    }
     
-    // Add to USERS object
-    USERS[userId] = {
-        name: name,
-        avatar: avatar
-    };
-    
-    // Set as current user
-    currentUser = userId;
-    
-    // Save to localStorage
-    localStorage.setItem('currentUser', currentUser);
-    localStorage.setItem('users', JSON.stringify(USERS));
-    
-    // Close modal and initialize app
-    nameInputModal.style.display = 'none';
-    nameInputModal.classList.add('hidden');
+    // Initialize app
     updateUserUI();
     populateUserDropdown();
     loadUserData();
     init();
-    
-    showNotification(`✅ Selamat datang, ${name}!`);
+}
+
+function createDefaultUser() {
+    const userId = generateID();
+    USERS[userId] = {
+        name: 'Pengguna',
+        avatar: '👤'
+    };
+    currentUser = userId;
+    localStorage.setItem('currentUser', currentUser);
+    localStorage.setItem('users', JSON.stringify(USERS));
 }
 
 function populateUserDropdown() {
@@ -368,12 +322,6 @@ function loadUserData() {
 }
 
 
-
-// Name input form submission
-nameInputForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    createUserFromInput();
-});
 
 // Add user form submission
 addUserForm.addEventListener('submit', (e) => {
