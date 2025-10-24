@@ -1,15 +1,15 @@
 const CACHE_NAME = 'financeflow-app-v1';
 const urlsToCache = [
-  '.',
-  'index.html',
-  'style.css',
-  'app.js',
-  'manifest.json',
-  'favicon.svg',
-  'icon.svg',
-  'icon-192.png',
-  'icon-512.png',
-  'favicon.png'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './manifest.json',
+  './favicon.svg',
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './favicon.png'
 ];
 
 // Install Service Worker
@@ -19,6 +19,10 @@ self.addEventListener('install', event => {
       .then(cache => {
         console.log('Cache opened');
         return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('All files cached');
+        return self.skipWaiting();
       })
   );
 });
@@ -50,6 +54,8 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
