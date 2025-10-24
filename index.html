@@ -304,101 +304,19 @@
                 <canvas id="savingsChart"></canvas>
             </div>
 
-            <!-- Form Setoran -->
+            <!-- Info Card -->
             <div class="form-card">
-                <h3>📥 Setoran ke Tabungan</h3>
-                <form id="savingsDepositForm">
-                    <div class="form-group">
-                        <label for="depositAmount">Jumlah Setoran (Rp)</label>
-                        <input 
-                            type="number" 
-                            id="depositAmount" 
-                            placeholder="0" 
-                            required
-                            min="1000"
-                            step="1000"
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label for="depositDescription">Keterangan</label>
-                        <input 
-                            type="text" 
-                            id="depositDescription" 
-                            placeholder="Contoh: Nabung dari gaji bulan ini" 
-                            required
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label for="depositDate">Tanggal</label>
-                        <input 
-                            type="date" 
-                            id="depositDate" 
-                            required
-                        >
-                    </div>
-
-                    <button type="submit" class="btn-primary">
-                        <span>💾</span> Tambah Setoran
-                    </button>
-                </form>
-            </div>
-
-            <!-- Form Penarikan -->
-            <div class="form-card">
-                <h3>📤 Penarikan dari Tabungan</h3>
-                <form id="savingsWithdrawalForm">
-                    <div class="form-group">
-                        <label for="withdrawalCategory">Kategori Pengeluaran</label>
-                        <select id="withdrawalCategory" required>
-                            <option value="food">🍔 Makanan & Minuman</option>
-                            <option value="transport">🚗 Transportasi</option>
-                            <option value="shopping">🛍️ Belanja</option>
-                            <option value="bills">📄 Tagihan & Utilitas</option>
-                            <option value="health">🏥 Kesehatan</option>
-                            <option value="education">📚 Pendidikan</option>
-                            <option value="entertainment">🎬 Hiburan</option>
-                            <option value="family">👨‍👩‍👧‍👦 Keluarga</option>
-                            <option value="other_expense">➕ Lainnya</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="withdrawalAmount">Jumlah Penarikan (Rp)</label>
-                        <input 
-                            type="number" 
-                            id="withdrawalAmount" 
-                            placeholder="0" 
-                            required
-                            min="1000"
-                            step="1000"
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label for="withdrawalDescription">Keterangan</label>
-                        <input 
-                            type="text" 
-                            id="withdrawalDescription" 
-                            placeholder="Contoh: Ambil tabungan untuk bayar kuliah" 
-                            required
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label for="withdrawalDate">Tanggal</label>
-                        <input 
-                            type="date" 
-                            id="withdrawalDate" 
-                            required
-                        >
-                    </div>
-
-                    <button type="submit" class="btn-primary">
-                        <span>💾</span> Tarik Tabungan
-                    </button>
-                </form>
+                <h3>💡 Cara Menggunakan Tabungan</h3>
+                <div class="info-content">
+                    <p>📝 <strong>Cara Menambah Tabungan:</strong></p>
+                    <p>1. Pergi ke tab <strong>"Transaksi"</strong></p>
+                    <p>2. Pilih jenis <strong>"Pengeluaran"</strong></p>
+                    <p>3. Pilih kategori <strong>"💎 Tabungan"</strong></p>
+                    <p>4. Masukkan jumlah dan keterangan</p>
+                    <p>5. Simpan transaksi</p>
+                    <br>
+                    <p>📊 Tabungan akan otomatis muncul di dashboard ini!</p>
+                </div>
             </div>
 
             <!-- Riwayat Transaksi Tabungan -->

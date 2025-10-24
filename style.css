@@ -558,6 +558,24 @@ body {
     margin: 5px 0;
 }
 
+/* Info Content */
+.info-content {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.info-content p {
+    margin-bottom: 8px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.info-content strong {
+    color: #333;
+}
+
 /* Modal */
 .modal {
     position: fixed;
