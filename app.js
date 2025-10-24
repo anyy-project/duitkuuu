@@ -11,6 +11,8 @@ window.addEventListener('load', () => {
             splashscreen.style.display = 'none';
             // Initialize user system after splash screen is hidden
             initUserSystem();
+            // Initialize tab navigation after splash screen is hidden
+            initTabNavigation();
         }, 500);
     }, 2000); // Show splashscreen for 2 seconds
 });
@@ -351,13 +353,33 @@ document.addEventListener('click', (e) => {
 // Add user button
 addUserBtn.addEventListener('click', () => {
     userDropdown.classList.remove('show');
-    addUserModal.classList.remove('hidden');
+    const addUserModal = document.getElementById('addUserModal');
+    if (addUserModal) {
+        addUserModal.classList.remove('hidden');
+    }
 });
 
 // Cancel add user
-document.getElementById('cancelAddUser').addEventListener('click', () => {
-    addUserModal.classList.add('hidden');
-});
+const cancelAddUserBtn = document.getElementById('cancelAddUser');
+if (cancelAddUserBtn) {
+    cancelAddUserBtn.addEventListener('click', () => {
+        const addUserModal = document.getElementById('addUserModal');
+        if (addUserModal) {
+            addUserModal.classList.add('hidden');
+        }
+    });
+}
+
+// Cancel add user (alternative button)
+const cancelAddUserBtnAlt = document.getElementById('cancelAddUserBtn');
+if (cancelAddUserBtnAlt) {
+    cancelAddUserBtnAlt.addEventListener('click', () => {
+        const addUserModal = document.getElementById('addUserModal');
+        if (addUserModal) {
+            addUserModal.classList.add('hidden');
+        }
+    });
+}
 
 function init() {
     // Set date input to today
@@ -408,24 +430,32 @@ function init() {
 // TAB NAVIGATION
 // =============================================
 
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const targetTab = btn.dataset.tab;
-        
-        // Remove active class from all
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        
-        // Add active class to clicked
-        btn.classList.add('active');
-        document.getElementById(targetTab).classList.add('active');
-        
-        // Refresh charts when dashboard is opened
-        if (targetTab === 'dashboard') {
-            updateDashboard();
-        }
+function initTabNavigation() {
+    tabBtns.forEach((btn, index) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const targetTab = btn.dataset.tab;
+            
+            // Remove active class from all
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked
+            btn.classList.add('active');
+            const targetElement = document.getElementById(targetTab);
+            
+            if (targetElement) {
+                targetElement.classList.add('active');
+            }
+            
+            // Refresh charts when dashboard is opened
+            if (targetTab === 'dashboard') {
+                updateDashboard();
+            }
+        });
     });
-});
+}
 
 // =============================================
 // CATEGORIES MANAGEMENT
