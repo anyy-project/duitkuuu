@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FinanceFlow Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        button { padding: 10px 20px; margin: 5px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #764ba2; }
+    </style>
+</head>
+<body>
+    <h1>FinanceFlow Icon Generator</h1>
+    <p>Gunakan halaman ini untuk generate icon PNG yang diperlukan untuk PWA.</p>
+    
+    <canvas id="faviconCanvas" width="32" height="32"></canvas>
+    <canvas id="icon192Canvas" width="192" height="192"></canvas>
+    <canvas id="icon512Canvas" width="512" height="512"></canvas>
+    
+    <br><br>
+    <button onclick="downloadCanvas(faviconCanvas, 'favicon.png')">Download Favicon (32x32)</button>
+    <button onclick="downloadCanvas(icon192Canvas, 'icon-192.png')">Download Icon 192x192</button>
+    <button onclick="downloadCanvas(icon512Canvas, 'icon-512.png')">Download Icon 512x512</button>
+    
+    <script>
+        // Fungsi untuk membuat gradient
+        function createGradient(ctx, x1, y1, x2, y2, colors) {
+            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            colors.forEach((color, index) => {
+                gradient.addColorStop(index / (colors.length - 1), color);
+            });
+            return gradient;
+        }
+        
+        // Fungsi untuk menggambar icon
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const center = size / 2;
+            const scale = size / 32; // Scale factor berdasarkan ukuran 32x32
+            
+            // Background circle
+            ctx.beginPath();
+            ctx.arc(center, center, center - 1, 0, 2 * Math.PI);
+            const bgGradient = createGradient(ctx, 0, 0, size, size, ['#667eea', '#764ba2']);
+            ctx.fillStyle = bgGradient;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = Math.max(1, 1 * scale);
+            ctx.stroke();
+            
+            // Main coin
+            ctx.beginPath();
+            ctx.arc(center, center - 2 * scale, 6 * scale, 0, 2 * Math.PI);
+            const coinGradient = createGradient(ctx, 0, 0, size, size, ['#FFD700', '#FFA500']);
+            ctx.fillStyle = coinGradient;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = Math.max(0.8, 0.8 * scale);
+            ctx.stroke();
+            
+            // Dollar sign
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${Math.max(7, 7 * scale)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', center, center + 1 * scale);
+            
+            // Flow lines
+            ctx.strokeStyle = createGradient(ctx, 0, 0, size, size, ['#00C9FF', '#92FE9D']);
+            ctx.lineWidth = Math.max(1.5, 1.5 * scale);
+            ctx.lineCap = 'round';
+            
+            // Top flow line
+            ctx.beginPath();
+            ctx.moveTo(10 * scale, 10 * scale);
+            ctx.quadraticCurveTo(13 * scale, 8 * scale, 16 * scale, 10 * scale);
+            ctx.quadraticCurveTo(19 * scale, 12 * scale, 22 * scale, 10 * scale);
+            ctx.stroke();
+            
+            // Bottom flow line
+            ctx.beginPath();
+            ctx.moveTo(10 * scale, 18 * scale);
+            ctx.quadraticCurveTo(13 * scale, 20 * scale, 16 * scale, 18 * scale);
+            ctx.quadraticCurveTo(19 * scale, 16 * scale, 22 * scale, 18 * scale);
+            ctx.stroke();
+            
+            // Small coins
+            const smallCoins = [
+                {x: 9 * scale, y: 9 * scale},
+                {x: 23 * scale, y: 9 * scale},
+                {x: 9 * scale, y: 23 * scale},
+                {x: 23 * scale, y: 23 * scale}
+            ];
+            
+            smallCoins.forEach(coin => {
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, 2 * scale, 0, 2 * Math.PI);
+                ctx.fillStyle = coinGradient;
+                ctx.globalAlpha = 0.8;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Small dollar signs
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.max(3, 3 * scale)}px Arial`;
+                ctx.fillText('$', coin.x, coin.y + 0.5 * scale);
+            });
+        }
+        
+        // Generate icons
+        const faviconCanvas = document.getElementById('faviconCanvas');
+        const icon192Canvas = document.getElementById('icon192Canvas');
+        const icon512Canvas = document.getElementById('icon512Canvas');
+        
+        drawIcon(faviconCanvas, 32);
+        drawIcon(icon192Canvas, 192);
+        drawIcon(icon512Canvas, 512);
+        
+        // Download functions
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

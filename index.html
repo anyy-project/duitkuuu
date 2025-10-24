@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#764ba2">
+    <meta name="description" content="FinanceFlow - Aplikasi Manajemen Keuangan Multi-User dengan Grafik dan Analisis">
+    <title>FinanceFlow - Smart Finance Manager</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Splashscreen -->
+    <div id="splashscreen" class="splashscreen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="logo-circle">
+                    <div class="logo-icon">💰</div>
+                </div>
+                <div class="logo-shine"></div>
+            </div>
+            <h1 class="splash-title">FinanceFlow</h1>
+            <p class="splash-subtitle">Smart Finance Manager</p>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
+            </div>
+            <p class="splash-tagline">Kelola Keuangan Lebih Mudah & Cerdas</p>
+        </div>
+    </div>
+
+    <!-- Name Input Modal (First Time) -->
+    <div id="nameInputModal" class="modal">
+        <div class="modal-content">
+            <h2>👋 Selamat Datang!</h2>
+            <p>Masukkan nama Anda untuk memulai menggunakan FinanceFlow:</p>
+            <form id="nameInputForm">
+                <div class="form-group">
+                    <label for="userNameInput">Nama Anda</label>
+                    <input type="text" id="userNameInput" placeholder="Masukkan nama Anda" required>
+                </div>
+                <div class="form-group">
+                    <label for="userAvatarSelect">Avatar</label>
+                    <select id="userAvatarSelect" required>
+                        <option value="👨">👨 Pria</option>
+                        <option value="👩">👩 Wanita</option>
+                        <option value="👦">👦 Anak Laki-laki</option>
+                        <option value="👧">👧 Anak Perempuan</option>
+                        <option value="🧑">🧑 Netral</option>
+                        <option value="👴">👴 Kakek</option>
+                        <option value="👵">👵 Nenek</option>
+                        <option value="👨‍💼">👨‍💼 Pria Kerja</option>
+                        <option value="👩‍💼">👩‍💼 Wanita Kerja</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Mulai Menggunakan</button>
+                </div>
+            </form>
+            <p class="user-note">💡 Anda bisa menambahkan pengguna lain melalui dropdown di header</p>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <h2>👤 Tambah Pengguna Baru</h2>
+            <p>Tambahkan pengguna baru untuk menggunakan aplikasi:</p>
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label for="newUserName">Nama Pengguna</label>
+                    <input type="text" id="newUserName" placeholder="Masukkan nama pengguna" required>
+                </div>
+                <div class="form-group">
+                    <label for="newUserAvatar">Avatar</label>
+                    <select id="newUserAvatar" required>
+                        <option value="👨">👨 Pria</option>
+                        <option value="👩">👩 Wanita</option>
+                        <option value="👦">👦 Anak Laki-laki</option>
+                        <option value="👧">👧 Anak Perempuan</option>
+                        <option value="🧑">🧑 Netral</option>
+                        <option value="👴">👴 Kakek</option>
+                        <option value="👵">👵 Nenek</option>
+                        <option value="👨‍💼">👨‍💼 Pria Kerja</option>
+                        <option value="👩‍💼">👩‍💼 Wanita Kerja</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelAddUser">Batal</button>
+                    <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1>💰 FinanceFlow</h1>
+                    <p class="subtitle">Smart Finance Manager</p>
+                </div>
+                <div class="user-switch">
+                    <button id="currentUserBtn" class="current-user-btn">
+                        <span class="user-avatar-small" id="currentUserAvatar">👤</span>
+                        <span id="currentUserName">Pengguna</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown">
+                        <div id="userDropdownList" class="user-dropdown-list">
+                            <!-- Users will be populated dynamically -->
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <button class="user-dropdown-item" id="addUserBtn">
+                            <span>➕</span>
+                            <span>Tambah Pengguna</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="transactions">💳 Transaksi</button>
+            <button class="tab-btn" data-tab="savings">💎 Tabungan</button>
+            <button class="tab-btn" data-tab="budget">🎯 Budget</button>
+            <button class="tab-btn" data-tab="reports">📈 Laporan</button>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Saldo Cards -->
+            <div class="balance-grid">
+                <div class="balance-card primary">
+                    <div class="card-icon">💰</div>
+                    <p class="card-label">Total Saldo</p>
+                    <h2 class="card-amount" id="totalBalance">Rp 0</h2>
+                </div>
+                <div class="balance-card success">
+                    <div class="card-icon">📈</div>
+                    <p class="card-label">Pemasukan</p>
+                    <h2 class="card-amount" id="totalIncome">Rp 0</h2>
+                </div>
+                <div class="balance-card danger">
+                    <div class="card-icon">📉</div>
+                    <p class="card-label">Pengeluaran</p>
+                    <h2 class="card-amount" id="totalExpense">Rp 0</h2>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📊 Grafik Pemasukan vs Pengeluaran</h3>
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🥧 Pengeluaran per Kategori</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Transaksi Bulan Ini</div>
+                    <div class="stat-value" id="monthTransactions">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rata-rata Pengeluaran</div>
+                    <div class="stat-value" id="avgExpense">Rp 0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Budget Terpakai</div>
+                    <div class="stat-value" id="budgetUsed">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONS TAB -->
+        <div id="transactions" class="tab-content">
+            <!-- Form Input -->
+            <div class="form-card">
+                <h3>➕ Tambah Transaksi Baru</h3>
+                <form id="transactionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="type">Jenis Transaksi</label>
+                            <select id="type" required>
+                                <option value="income">💰 Pemasukan</option>
+                                <option value="expense">💸 Pengeluaran</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category">Kategori</label>
+                            <select id="category" required>
+                                <!-- Dinamis berdasarkan type -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Keterangan</label>
+                        <input 
+                            type="text" 
+                            id="description" 
+                            placeholder="Contoh: Beli bahan makanan di supermarket" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="amount">Jumlah (Rp)</label>
+                            <input 
+                                type="number" 
+                                id="amount" 
+                                placeholder="0" 
+                                required
+                                min="0"
+                                step="1000"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date">Tanggal</label>
+                            <input 
+                                type="date" 
+                                id="date" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span> Tambah Transaksi
+                    </button>
+                </form>
+            </div>
+
+            <!-- Filter dan Actions -->
+            <div class="filter-section">
+                <select id="filterType" class="filter-select">
+                    <option value="all">Semua Transaksi</option>
+                    <option value="income">Pemasukan Saja</option>
+                    <option value="expense">Pengeluaran Saja</option>
+                </select>
+                <select id="filterCategory" class="filter-select">
+                    <option value="all">Semua Kategori</option>
+                </select>
+                <select id="filterPeriod" class="filter-select">
+                    <option value="all">Semua Periode</option>
+                    <option value="today">Hari Ini</option>
+                    <option value="week">Minggu Ini</option>
+                    <option value="month">Bulan Ini</option>
+                    <option value="year">Tahun Ini</option>
+                </select>
+            </div>
+
+            <!-- Daftar Transaksi -->
+            <div class="transactions-card">
+                <div class="card-header">
+                    <h3>📋 Riwayat Transaksi</h3>
+                    <button id="exportBtn" class="btn-secondary">
+                        📥 Export
+                    </button>
+                </div>
+                
+                <!-- Transaction Count & Per Page Selector -->
+                <div class="transaction-controls">
+                    <div class="transaction-count">
+                        Total: <strong id="transactionCount">0</strong> transaksi
+                    </div>
+                    <div class="per-page-selector">
+                        <label for="perPage">Tampilkan:</label>
+                        <select id="perPage">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="all">Semua</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="transactionsList" class="transactions-list">
+                    <p class="empty-state">Belum ada transaksi. Tambahkan transaksi pertama Anda!</p>
+                </div>
+                
+                <!-- Pagination -->
+                <div id="pagination" class="pagination">
+                    <button id="prevPage" class="pagination-btn" disabled>
+                        ◀ Sebelumnya
+                    </button>
+                    <div id="pageInfo" class="page-info">
+                        Halaman <span id="currentPage">1</span> dari <span id="totalPages">1</span>
+                    </div>
+                    <button id="nextPage" class="pagination-btn" disabled>
+                        Selanjutnya ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAVINGS TAB -->
+        <div id="savings" class="tab-content">
+            <!-- Saldo Tabungan Cards -->
+            <div class="balance-grid">
+                <div class="balance-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="card-icon">💰</div>
+                    <p class="card-label">Saldo Tabungan</p>
+                    <h2 class="card-amount" id="savingsBalance">Rp 0</h2>
+                </div>
+                <div class="balance-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                    <div class="card-icon">📥</div>
+                    <p class="card-label">Total Setoran</p>
+                    <h2 class="card-amount" id="savingsDeposit">Rp 0</h2>
+                </div>
+                <div class="balance-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white;">
+                    <div class="card-icon">📤</div>
+                    <p class="card-label">Total Penarikan</p>
+                    <h2 class="card-amount" id="savingsWithdrawal">Rp 0</h2>
+                </div>
+            </div>
+
+            <!-- Grafik Tabungan -->
+            <div class="chart-card">
+                <h3>📊 Trend Tabungan Bulanan</h3>
+                <canvas id="savingsChart"></canvas>
+            </div>
+
+            <!-- Form Setoran -->
+            <div class="form-card">
+                <h3>📥 Setoran ke Tabungan</h3>
+                <form id="savingsDepositForm">
+                    <div class="form-group">
+                        <label for="depositAmount">Jumlah Setoran (Rp)</label>
+                        <input 
+                            type="number" 
+                            id="depositAmount" 
+                            placeholder="0" 
+                            required
+                            min="1000"
+                            step="1000"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="depositDescription">Keterangan</label>
+                        <input 
+                            type="text" 
+                            id="depositDescription" 
+                            placeholder="Contoh: Nabung dari gaji bulan ini" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="depositDate">Tanggal</label>
+                        <input 
+                            type="date" 
+                            id="depositDate" 
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span> Tambah Setoran
+                    </button>
+                </form>
+            </div>
+
+            <!-- Form Penarikan -->
+            <div class="form-card">
+                <h3>📤 Penarikan dari Tabungan</h3>
+                <form id="savingsWithdrawalForm">
+                    <div class="form-group">
+                        <label for="withdrawalCategory">Kategori Pengeluaran</label>
+                        <select id="withdrawalCategory" required>
+                            <option value="food">🍔 Makanan & Minuman</option>
+                            <option value="transport">🚗 Transportasi</option>
+                            <option value="shopping">🛍️ Belanja</option>
+                            <option value="bills">📄 Tagihan & Utilitas</option>
+                            <option value="health">🏥 Kesehatan</option>
+                            <option value="education">📚 Pendidikan</option>
+                            <option value="entertainment">🎬 Hiburan</option>
+                            <option value="family">👨‍👩‍👧‍👦 Keluarga</option>
+                            <option value="other_expense">➕ Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdrawalAmount">Jumlah Penarikan (Rp)</label>
+                        <input 
+                            type="number" 
+                            id="withdrawalAmount" 
+                            placeholder="0" 
+                            required
+                            min="1000"
+                            step="1000"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdrawalDescription">Keterangan</label>
+                        <input 
+                            type="text" 
+                            id="withdrawalDescription" 
+                            placeholder="Contoh: Ambil tabungan untuk bayar kuliah" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="withdrawalDate">Tanggal</label>
+                        <input 
+                            type="date" 
+                            id="withdrawalDate" 
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span> Tarik Tabungan
+                    </button>
+                </form>
+            </div>
+
+            <!-- Riwayat Transaksi Tabungan -->
+            <div class="transactions-card">
+                <div class="card-header">
+                    <h3>📋 Riwayat Transaksi Tabungan</h3>
+                    <select id="savingsFilter" class="filter-select">
+                        <option value="all">Semua Transaksi</option>
+                        <option value="deposit">Setoran Saja</option>
+                        <option value="withdrawal">Penarikan Saja</option>
+                    </select>
+                </div>
+                
+                <div class="transaction-controls">
+                    <div class="transaction-count">
+                        Total: <strong id="savingsTransactionCount">0</strong> transaksi
+                    </div>
+                </div>
+                
+                <div id="savingsHistoryList" class="transactions-list">
+                    <p class="empty-state">Belum ada transaksi tabungan.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUDGET TAB -->
+        <div id="budget" class="tab-content">
+            <div class="form-card">
+                <h3>🎯 Atur Budget Bulanan</h3>
+                <form id="budgetForm">
+                    <div class="form-group">
+                        <label for="budgetCategory">Kategori</label>
+                        <select id="budgetCategory" required>
+                            <!-- Expense categories -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budgetAmount">Target Budget (Rp/bulan)</label>
+                        <input 
+                            type="number" 
+                            id="budgetAmount" 
+                            placeholder="0" 
+                            required
+                            min="0"
+                            step="10000"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span> Simpan Budget
+                    </button>
+                </form>
+            </div>
+
+            <!-- Budget List -->
+            <div class="budget-list-card">
+                <h3>📊 Budget per Kategori</h3>
+                <div id="budgetList" class="budget-list">
+                    <p class="empty-state">Belum ada budget yang diatur.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS TAB -->
+        <div id="reports" class="tab-content">
+            <div class="report-card">
+                <h3>📅 Pilih Periode Laporan</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reportStart">Dari Tanggal</label>
+                        <input type="date" id="reportStart">
+                    </div>
+                    <div class="form-group">
+                        <label for="reportEnd">Sampai Tanggal</label>
+                        <input type="date" id="reportEnd">
+                    </div>
+                </div>
+                <button id="generateReport" class="btn-primary">
+                    📊 Generate Laporan
+                </button>
+            </div>
+
+            <div id="reportResults" class="report-results">
+                <!-- Laporan akan muncul di sini -->
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="clearAll" class="btn-danger">
+                🗑️ Hapus Semua Data
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
