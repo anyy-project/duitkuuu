@@ -46,37 +46,6 @@
     </div>
 
 
-    <!-- Add User Modal -->
-    <div id="addUserModal" class="modal">
-        <div class="modal-content">
-            <h2>👤 Tambah Pengguna Baru</h2>
-            <p>Tambahkan pengguna baru untuk menggunakan aplikasi:</p>
-            <form id="addUserForm">
-                <div class="form-group">
-                    <label for="newUserName">Nama Pengguna</label>
-                    <input type="text" id="newUserName" placeholder="Masukkan nama pengguna" required>
-                </div>
-                <div class="form-group">
-                    <label for="newUserAvatar">Avatar</label>
-                    <select id="newUserAvatar" required>
-                        <option value="👨">👨 Pria</option>
-                        <option value="👩">👩 Wanita</option>
-                        <option value="👦">👦 Anak Laki-laki</option>
-                        <option value="👧">👧 Anak Perempuan</option>
-                        <option value="🧑">🧑 Netral</option>
-                        <option value="👴">👴 Kakek</option>
-                        <option value="👵">👵 Nenek</option>
-                        <option value="👨‍💼">👨‍💼 Pria Kerja</option>
-                        <option value="👩‍💼">👩‍💼 Wanita Kerja</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="cancelAddUser">Batal</button>
-                    <button type="submit" class="btn btn-primary">Tambah Pengguna</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
 
 
@@ -99,10 +68,25 @@
                             <!-- Users will be populated dynamically -->
                         </div>
                         <div class="dropdown-divider"></div>
-                        <button class="user-dropdown-item" id="addUserBtn">
-                            <span>➕</span>
-                            <span>Tambah Pengguna</span>
-                        </button>
+                        <div id="addUserForm" class="add-user-form">
+                            <div class="form-group">
+                                <input type="text" id="newUserName" placeholder="Nama pengguna" required>
+                            </div>
+                            <div class="form-group">
+                                <select id="newUserAvatar" required>
+                                    <option value="👨">👨 Pria</option>
+                                    <option value="👩">👩 Wanita</option>
+                                    <option value="👦">👦 Anak Laki-laki</option>
+                                    <option value="👧">👧 Anak Perempuan</option>
+                                    <option value="🧑">🧑 Netral</option>
+                                    <option value="👴">👴 Kakek</option>
+                                    <option value="👵">👵 Nenek</option>
+                                    <option value="👨‍💼">👨‍💼 Pria Kerja</option>
+                                    <option value="👩‍💼">👩‍💼 Wanita Kerja</option>
+                                </select>
+                            </div>
+                            <button id="addUserBtn" class="btn-add-user">➕ Tambah</button>
+                        </div>
                     </div>
                 </div>
             </div>

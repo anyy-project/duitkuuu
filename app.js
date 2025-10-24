@@ -73,14 +73,14 @@ let totalFilteredTransactions = 0;
 // =============================================
 
 // User Modal & Switcher
-const addUserModal = document.getElementById('addUserModal');
-const addUserForm = document.getElementById('addUserForm');
 const currentUserBtn = document.getElementById('currentUserBtn');
 const currentUserName = document.getElementById('currentUserName');
 const currentUserAvatar = document.getElementById('currentUserAvatar');
 const userDropdown = document.getElementById('userDropdown');
 const userDropdownList = document.getElementById('userDropdownList');
 const addUserBtn = document.getElementById('addUserBtn');
+const newUserName = document.getElementById('newUserName');
+const newUserAvatar = document.getElementById('newUserAvatar');
 
 // Tabs
 const tabBtns = document.querySelectorAll('.tab-btn');
@@ -247,8 +247,8 @@ function switchUser(userId) {
 }
 
 function addNewUser() {
-    const name = document.getElementById('newUserName').value.trim();
-    const avatar = document.getElementById('newUserAvatar').value;
+    const name = newUserName.value.trim();
+    const avatar = newUserAvatar.value;
     
     if (!name) {
         alert('Nama pengguna tidak boleh kosong!');
@@ -270,11 +270,9 @@ function addNewUser() {
     // Update UI
     populateUserDropdown();
     
-    // Close modal
-    addUserModal.classList.add('hidden');
-    
     // Clear form
-    addUserForm.reset();
+    newUserName.value = '';
+    newUserAvatar.value = '👨';
     
     showNotification(`✅ Pengguna "${name}" berhasil ditambahkan!`);
 }
@@ -323,10 +321,18 @@ function loadUserData() {
 
 
 
-// Add user form submission
-addUserForm.addEventListener('submit', (e) => {
+// Add user button click
+addUserBtn.addEventListener('click', (e) => {
     e.preventDefault();
     addNewUser();
+});
+
+// Add user on Enter key
+newUserName.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        addNewUser();
+    }
 });
 
 // Toggle user dropdown

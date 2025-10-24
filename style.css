@@ -373,6 +373,43 @@ body {
     font-weight: 600;
 }
 
+/* Add User Form in Dropdown */
+.add-user-form {
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.add-user-form .form-group {
+    margin-bottom: 10px;
+}
+
+.add-user-form input,
+.add-user-form select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.btn-add-user {
+    width: 100%;
+    padding: 8px 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-add-user:hover {
+    background: #5a6fd8;
+}
+
 .user-delete-btn {
     position: absolute;
     right: 8px;
