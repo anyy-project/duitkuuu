@@ -85,9 +85,34 @@ const addUserBtn = document.getElementById('addUserBtn');
 const newUserName = document.getElementById('newUserName');
 const newUserAvatar = document.getElementById('newUserAvatar');
 
-// Tabs
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
+// Tabs - Check if elements exist
+let tabBtns, tabContents;
+
+function checkDOMElements() {
+    console.log('Checking DOM elements...');
+    tabBtns = document.querySelectorAll('.tab-btn');
+    tabContents = document.querySelectorAll('.tab-content');
+    
+    console.log('Tab buttons found:', tabBtns.length);
+    console.log('Tab contents found:', tabContents.length);
+    
+    if (tabBtns.length === 0) {
+        console.error('CRITICAL: No tab buttons found!');
+        return false;
+    }
+    
+    if (tabContents.length === 0) {
+        console.error('CRITICAL: No tab contents found!');
+        return false;
+    }
+    
+    // Log each tab button
+    tabBtns.forEach((btn, index) => {
+        console.log(`Tab ${index}:`, btn.textContent.trim(), '->', btn.dataset.tab);
+    });
+    
+    return true;
+}
 
 // Form
 const form = document.getElementById('transactionForm');
@@ -434,58 +459,83 @@ function init() {
 // =============================================
 
 function initTabNavigation() {
-    console.log('Initializing tab navigation...');
-    console.log('Tab buttons found:', tabBtns.length);
-    console.log('Tab contents found:', tabContents.length);
+    console.log('=== INITIALIZING TAB NAVIGATION ===');
     
-    if (tabBtns.length === 0) {
-        console.error('No tab buttons found!');
+    // Check if DOM elements exist
+    if (!checkDOMElements()) {
+        console.error('Cannot initialize tab navigation - DOM elements not found');
         return;
     }
     
-    if (tabContents.length === 0) {
-        console.error('No tab contents found!');
-        return;
-    }
+    console.log('Setting up event listeners for', tabBtns.length, 'tab buttons');
     
     tabBtns.forEach((btn, index) => {
-        console.log(`Setting up tab button ${index}:`, btn.textContent, btn.dataset.tab);
+        console.log(`Setting up tab button ${index}:`, btn.textContent.trim());
         
-        btn.addEventListener('click', (e) => {
+        // Remove any existing event listeners
+        btn.replaceWith(btn.cloneNode(true));
+        const newBtn = document.querySelectorAll('.tab-btn')[index];
+        
+        newBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Tab clicked:', btn.textContent, btn.dataset.tab);
+            e.stopPropagation();
             
-            const targetTab = btn.dataset.tab;
+            console.log('=== TAB CLICKED ===');
+            console.log('Button text:', newBtn.textContent.trim());
+            console.log('Target tab:', newBtn.dataset.tab);
+            
+            const targetTab = newBtn.dataset.tab;
+            
+            if (!targetTab) {
+                console.error('No target tab specified!');
+                return;
+            }
             
             // Remove active class from all
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
+            tabBtns.forEach(b => {
+                b.classList.remove('active');
+                console.log('Removed active from:', b.textContent.trim());
+            });
+            tabContents.forEach(c => {
+                c.classList.remove('active');
+                console.log('Removed active from content:', c.id);
+            });
             
             // Add active class to clicked
-            btn.classList.add('active');
+            newBtn.classList.add('active');
+            console.log('Added active to:', newBtn.textContent.trim());
+            
             const targetElement = document.getElementById(targetTab);
             
             if (targetElement) {
                 targetElement.classList.add('active');
-                console.log('Tab switched to:', targetTab);
+                console.log('Added active to content:', targetTab);
+                console.log('Tab switched successfully to:', targetTab);
             } else {
                 console.error('Target tab element not found:', targetTab);
+                return;
             }
             
             // Refresh charts when dashboard is opened
             if (targetTab === 'dashboard') {
+                console.log('Refreshing dashboard...');
                 updateDashboard();
             }
             
             // Refresh savings dashboard when savings tab is opened
             if (targetTab === 'savings') {
+                console.log('Refreshing savings dashboard...');
                 updateSavingsDashboard();
                 displaySavingsHistory();
             }
+            
+            console.log('=== TAB SWITCH COMPLETE ===');
         });
+        
+        console.log(`Event listener added to tab ${index}`);
     });
     
-    console.log('Tab navigation initialized successfully');
+    console.log('=== TAB NAVIGATION INITIALIZED SUCCESSFULLY ===');
 }
 
 // =============================================
@@ -1446,15 +1496,54 @@ clearAllBtn.addEventListener('click', clearAllData);
 // INITIALIZE APP
 // =============================================
 
-// Fallback initialization if splashscreen doesn't work
-setTimeout(() => {
-    const splashscreen = document.getElementById('splashscreen');
-    if (splashscreen && splashscreen.style.display !== 'none') {
-        console.log('Fallback: Initializing app after 5 seconds');
-        splashscreen.style.display = 'none';
+// Multiple fallback initialization attempts
+function tryInitializeApp() {
+    console.log('=== ATTEMPTING TO INITIALIZE APP ===');
+    
+    if (checkDOMElements()) {
+        console.log('DOM elements found, initializing...');
         initUserSystem();
         initTabNavigation();
+        return true;
+    } else {
+        console.log('DOM elements not ready yet, will retry...');
+        return false;
     }
+}
+
+// Try immediate initialization
+if (document.readyState === 'loading') {
+    console.log('Document still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded fired');
+        setTimeout(tryInitializeApp, 100);
+    });
+} else {
+    console.log('Document already loaded, trying immediate initialization...');
+    setTimeout(tryInitializeApp, 100);
+}
+
+// Fallback 1: After 1 second
+setTimeout(() => {
+    console.log('Fallback 1: Trying initialization after 1 second...');
+    tryInitializeApp();
+}, 1000);
+
+// Fallback 2: After 3 seconds
+setTimeout(() => {
+    console.log('Fallback 2: Trying initialization after 3 seconds...');
+    tryInitializeApp();
+}, 3000);
+
+// Fallback 3: After 5 seconds (original fallback)
+setTimeout(() => {
+    console.log('Fallback 3: Final attempt after 5 seconds...');
+    const splashscreen = document.getElementById('splashscreen');
+    if (splashscreen && splashscreen.style.display !== 'none') {
+        console.log('Force hiding splashscreen...');
+        splashscreen.style.display = 'none';
+    }
+    tryInitializeApp();
 }, 5000);
 
 // initUserSystem(); // Moved to after splash screen

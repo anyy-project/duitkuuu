@@ -900,6 +900,9 @@ body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    position: relative;
+    z-index: 5;
+    pointer-events: auto;
 }
 
 .tabs::-webkit-scrollbar {
@@ -924,12 +927,17 @@ body {
     border-radius: 10px;
     font-size: 0.9rem;
     font-weight: 600;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: all 0.3s;
     white-space: nowrap;
-    pointer-events: auto;
-    z-index: 1;
+    pointer-events: auto !important;
+    z-index: 10 !important;
     position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: manipulation;
 }
 
 .tab-btn:hover {
