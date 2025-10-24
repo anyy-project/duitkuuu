@@ -154,19 +154,25 @@ function initUserSystem() {
     }
     
     console.log('USERS after loading:', USERS);
+    console.log('Number of users:', Object.keys(USERS).length);
     
     // If no users exist, show name input modal
     if (Object.keys(USERS).length === 0) {
+        console.log('No users found, showing name input modal');
         showNameInputModal();
     } else {
+        console.log('Users exist, hiding modal and initializing app');
+        // Hide modal first
+        nameInputModal.classList.add('hidden');
+        
         // If no current user is set, use the first available user
         if (!currentUser) {
             currentUser = Object.keys(USERS)[0];
             localStorage.setItem('currentUser', currentUser);
+            console.log('Set current user to:', currentUser);
         }
         
         // Initialize the app with existing user
-        nameInputModal.classList.add('hidden');
         updateUserUI();
         populateUserDropdown();
         loadUserData();
@@ -179,6 +185,14 @@ function showNameInputModal() {
     console.log('nameInputModal element:', nameInputModal);
     nameInputModal.classList.remove('hidden');
     console.log('Modal classes after remove hidden:', nameInputModal.classList.toString());
+    
+    // Focus on name input
+    setTimeout(() => {
+        const nameInput = document.getElementById('userNameInput');
+        if (nameInput) {
+            nameInput.focus();
+        }
+    }, 100);
 }
 
 function createUserFromInput() {
