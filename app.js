@@ -411,15 +411,33 @@ function init() {
     // Register Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
+            navigator.serviceWorker.register('/duitkuuu/service-worker.js')
                 .then(reg => {
                     console.log('Service Worker registered successfully:', reg);
+                    
+                    // Check PWA installability
+                    if ('BeforeInstallPromptEvent' in window) {
+                        console.log('PWA can be installed');
+                    } else {
+                        console.log('PWA install prompt not available');
+                    }
                 })
                 .catch(err => {
                     console.log('Service Worker registration failed:', err);
                 });
         });
     }
+    
+    // Debug PWA installability
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA install prompt triggered');
+        e.preventDefault();
+        window.deferredPrompt = e;
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA installed successfully');
+    });
 }
 
 // =============================================

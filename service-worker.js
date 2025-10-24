@@ -1,15 +1,15 @@
 const CACHE_NAME = 'financeflow-app-v1';
 const urlsToCache = [
-  './',
-  './index.html',
-  './style.css',
-  './app.js',
-  './manifest.json',
-  './favicon.svg',
-  './icon.svg',
-  './icon-192.png',
-  './icon-512.png',
-  './favicon.png'
+  '/duitkuuu/',
+  '/duitkuuu/index.html',
+  '/duitkuuu/style.css',
+  '/duitkuuu/app.js',
+  '/duitkuuu/manifest.json',
+  '/duitkuuu/favicon.svg',
+  '/duitkuuu/icon.svg',
+  '/duitkuuu/icon-192.png',
+  '/duitkuuu/icon-512.png',
+  '/duitkuuu/favicon.png'
 ];
 
 // Install Service Worker
