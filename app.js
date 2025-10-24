@@ -268,8 +268,10 @@ function switchUser(userId) {
     displayTransactions();
     displayBudgets();
     updateDashboard();
-    updateSavingsDashboard();
-    displaySavingsHistory();
+    
+    // Only refresh savings if we're currently on the savings tab
+    // updateSavingsDashboard();
+    // displaySavingsHistory();
     
     showNotification(`✅ Beralih ke akun ${USERS[userId].name}`);
 }
@@ -419,8 +421,10 @@ function init() {
     updateDashboard();
     displayTransactions();
     displayBudgets();
-    updateSavingsDashboard();
-    displaySavingsHistory();
+    
+    // Only initialize savings if we're on the savings tab
+    // updateSavingsDashboard();
+    // displaySavingsHistory();
     
     // Register Service Worker
     if ('serviceWorker' in navigator) {
@@ -1060,178 +1064,214 @@ function deleteBudget(category) {
 // =============================================
 
 function updateSavingsDashboard() {
-    // Get savings transactions from main expense transactions with category 'saving'
-    const savingsTransactions = transactions.filter(t => 
-        t.type === 'expense' && t.category === 'saving'
-    );
-    
-    // Calculate savings balance (total amount saved)
-    const savingsBalance = savingsTransactions.reduce((sum, t) => sum + t.amount, 0);
-    
-    // Update UI elements
-    const savingsBalanceEl = document.getElementById('savingsBalance');
-    const savingsDepositEl = document.getElementById('savingsDeposit');
-    const savingsWithdrawalEl = document.getElementById('savingsWithdrawal');
-    
-    if (savingsBalanceEl) {
-        savingsBalanceEl.textContent = formatCurrency(savingsBalance);
+    try {
+        console.log('Updating savings dashboard...');
+        
+        // Get savings transactions from main expense transactions with category 'saving'
+        const savingsTransactions = transactions.filter(t => 
+            t.type === 'expense' && t.category === 'saving'
+        );
+        
+        console.log('Savings transactions found:', savingsTransactions.length);
+        
+        // Calculate savings balance (total amount saved)
+        const savingsBalance = savingsTransactions.reduce((sum, t) => sum + t.amount, 0);
+        
+        // Update UI elements
+        const savingsBalanceEl = document.getElementById('savingsBalance');
+        const savingsDepositEl = document.getElementById('savingsDeposit');
+        const savingsWithdrawalEl = document.getElementById('savingsWithdrawal');
+        
+        if (savingsBalanceEl) {
+            savingsBalanceEl.textContent = formatCurrency(savingsBalance);
+            console.log('Updated savings balance:', formatCurrency(savingsBalance));
+        } else {
+            console.log('Savings balance element not found');
+        }
+        
+        if (savingsDepositEl) {
+            savingsDepositEl.textContent = formatCurrency(savingsBalance);
+        }
+        
+        if (savingsWithdrawalEl) {
+            savingsWithdrawalEl.textContent = formatCurrency(0); // No withdrawals in this system
+        }
+        
+        // Update savings chart
+        updateSavingsChart();
+        
+        console.log('Savings dashboard updated successfully');
+    } catch (error) {
+        console.error('Error updating savings dashboard:', error);
     }
-    
-    if (savingsDepositEl) {
-        savingsDepositEl.textContent = formatCurrency(savingsBalance);
-    }
-    
-    if (savingsWithdrawalEl) {
-        savingsWithdrawalEl.textContent = formatCurrency(0); // No withdrawals in this system
-    }
-    
-    // Update savings chart
-    updateSavingsChart();
 }
 
 function updateSavingsChart() {
-    const canvas = document.getElementById('savingsChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Get savings transactions grouped by month
-    const monthlySavings = {};
-    const savingsTransactions = transactions.filter(t => 
-        t.type === 'expense' && t.category === 'saving'
-    );
-    
-    savingsTransactions.forEach(t => {
-        const date = new Date(t.date);
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+    try {
+        console.log('Updating savings chart...');
         
-        if (!monthlySavings[monthKey]) {
-            monthlySavings[monthKey] = 0;
+        const canvas = document.getElementById('savingsChart');
+        if (!canvas) {
+            console.log('Savings chart canvas not found');
+            return;
         }
-        monthlySavings[monthKey] += t.amount;
-    });
-    
-    // Get last 6 months
-    const months = [];
-    const savingsData = [];
-    
-    for (let i = 5; i >= 0; i--) {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-        const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
         
-        months.push(monthName);
-        savingsData.push(monthlySavings[monthKey] || 0);
-    }
-    
-    // Destroy existing chart if it exists
-    if (window.savingsChart) {
-        window.savingsChart.destroy();
-    }
-    
-    // Create new chart
-    window.savingsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: months,
-            datasets: [{
-                label: 'Tabungan Bulanan',
-                data: savingsData,
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
+        const ctx = canvas.getContext('2d');
+        
+        // Get savings transactions grouped by month
+        const monthlySavings = {};
+        const savingsTransactions = transactions.filter(t => 
+            t.type === 'expense' && t.category === 'saving'
+        );
+        
+        savingsTransactions.forEach(t => {
+            const date = new Date(t.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            
+            if (!monthlySavings[monthKey]) {
+                monthlySavings[monthKey] = 0;
+            }
+            monthlySavings[monthKey] += t.amount;
+        });
+        
+        // Get last 6 months
+        const months = [];
+        const savingsData = [];
+        
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+            
+            months.push(monthName);
+            savingsData.push(monthlySavings[monthKey] || 0);
+        }
+        
+        // Destroy existing chart if it exists
+        if (window.savingsChart) {
+            window.savingsChart.destroy();
+        }
+        
+        // Create new chart
+        window.savingsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Tabungan Bulanan',
+                    data: savingsData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'Rp ' + (value / 1000) + 'k';
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rp ' + (value / 1000) + 'k';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+        
+        console.log('Savings chart updated successfully');
+    } catch (error) {
+        console.error('Error updating savings chart:', error);
+    }
 }
 
 function displaySavingsHistory() {
-    const savingsHistoryList = document.getElementById('savingsHistoryList');
-    const savingsTransactionCount = document.getElementById('savingsTransactionCount');
-    const savingsFilter = document.getElementById('savingsFilter');
-    
-    if (!savingsHistoryList) return;
-    
-    // Get savings transactions from main expense transactions
-    let savingsTransactions = transactions.filter(t => 
-        t.type === 'expense' && t.category === 'saving'
-    );
-    
-    // Apply filter if exists
-    if (savingsFilter) {
-        const filterValue = savingsFilter.value;
-        if (filterValue === 'deposit') {
-            // All savings transactions are deposits in this system
-            savingsTransactions = savingsTransactions;
-        } else if (filterValue === 'withdrawal') {
-            // No withdrawals in this system
-            savingsTransactions = [];
+    try {
+        console.log('Displaying savings history...');
+        
+        const savingsHistoryList = document.getElementById('savingsHistoryList');
+        const savingsTransactionCount = document.getElementById('savingsTransactionCount');
+        const savingsFilter = document.getElementById('savingsFilter');
+        
+        if (!savingsHistoryList) {
+            console.log('Savings history list element not found');
+            return;
         }
-    }
-    
-    // Update count
-    if (savingsTransactionCount) {
-        savingsTransactionCount.textContent = savingsTransactions.length;
-    }
-    
-    // Display transactions
-    if (savingsTransactions.length === 0) {
-        savingsHistoryList.innerHTML = '<p class="empty-state">Belum ada transaksi tabungan.</p>';
-        return;
-    }
-    
-    savingsHistoryList.innerHTML = '';
-    
-    // Sort by date (newest first)
-    savingsTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    savingsTransactions.forEach(transaction => {
-        const item = document.createElement('div');
-        item.classList.add('transaction-item', 'expense');
         
-        const formattedDate = formatDate(transaction.date);
-        const formattedAmount = formatCurrency(transaction.amount);
+        // Get savings transactions from main expense transactions
+        let savingsTransactions = transactions.filter(t => 
+            t.type === 'expense' && t.category === 'saving'
+        );
         
-        item.innerHTML = `
-            <div class="transaction-info">
-                <span class="transaction-category">💎 Tabungan</span>
-                <div class="transaction-description">${transaction.description}</div>
-                <div class="transaction-date">${formattedDate}</div>
-            </div>
-            <div class="transaction-amount-wrapper">
-                <span class="transaction-amount expense">
-                    - ${formattedAmount}
-                </span>
-                <button class="btn-delete" onclick="deleteTransaction('${transaction.id}')">
-                    🗑️
-                </button>
-            </div>
-        `;
+        // Apply filter if exists
+        if (savingsFilter) {
+            const filterValue = savingsFilter.value;
+            if (filterValue === 'deposit') {
+                // All savings transactions are deposits in this system
+                savingsTransactions = savingsTransactions;
+            } else if (filterValue === 'withdrawal') {
+                // No withdrawals in this system
+                savingsTransactions = [];
+            }
+        }
         
-        savingsHistoryList.appendChild(item);
-    });
+        // Update count
+        if (savingsTransactionCount) {
+            savingsTransactionCount.textContent = savingsTransactions.length;
+        }
+        
+        // Display transactions
+        if (savingsTransactions.length === 0) {
+            savingsHistoryList.innerHTML = '<p class="empty-state">Belum ada transaksi tabungan.</p>';
+            console.log('No savings transactions to display');
+            return;
+        }
+        
+        savingsHistoryList.innerHTML = '';
+        
+        // Sort by date (newest first)
+        savingsTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        savingsTransactions.forEach(transaction => {
+            const item = document.createElement('div');
+            item.classList.add('transaction-item', 'expense');
+            
+            const formattedDate = formatDate(transaction.date);
+            const formattedAmount = formatCurrency(transaction.amount);
+            
+            item.innerHTML = `
+                <div class="transaction-info">
+                    <span class="transaction-category">💎 Tabungan</span>
+                    <div class="transaction-description">${transaction.description}</div>
+                    <div class="transaction-date">${formattedDate}</div>
+                </div>
+                <div class="transaction-amount-wrapper">
+                    <span class="transaction-amount expense">
+                        - ${formattedAmount}
+                    </span>
+                    <button class="btn-delete" onclick="deleteTransaction('${transaction.id}')">
+                        🗑️
+                    </button>
+                </div>
+            `;
+            
+            savingsHistoryList.appendChild(item);
+        });
+        
+        console.log('Savings history displayed successfully:', savingsTransactions.length, 'transactions');
+    } catch (error) {
+        console.error('Error displaying savings history:', error);
+    }
 }
 
 // =============================================
