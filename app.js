@@ -9,6 +9,7 @@ window.addEventListener('load', () => {
         splashscreen.classList.add('fade-out');
         setTimeout(() => {
             splashscreen.style.display = 'none';
+            console.log('Splashscreen hidden');
             // Initialize user system after splash screen is hidden
             initUserSystem();
             // Initialize tab navigation after splash screen is hidden
@@ -433,9 +434,26 @@ function init() {
 // =============================================
 
 function initTabNavigation() {
+    console.log('Initializing tab navigation...');
+    console.log('Tab buttons found:', tabBtns.length);
+    console.log('Tab contents found:', tabContents.length);
+    
+    if (tabBtns.length === 0) {
+        console.error('No tab buttons found!');
+        return;
+    }
+    
+    if (tabContents.length === 0) {
+        console.error('No tab contents found!');
+        return;
+    }
+    
     tabBtns.forEach((btn, index) => {
+        console.log(`Setting up tab button ${index}:`, btn.textContent, btn.dataset.tab);
+        
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('Tab clicked:', btn.textContent, btn.dataset.tab);
             
             const targetTab = btn.dataset.tab;
             
@@ -449,6 +467,9 @@ function initTabNavigation() {
             
             if (targetElement) {
                 targetElement.classList.add('active');
+                console.log('Tab switched to:', targetTab);
+            } else {
+                console.error('Target tab element not found:', targetTab);
             }
             
             // Refresh charts when dashboard is opened
@@ -463,6 +484,8 @@ function initTabNavigation() {
             }
         });
     });
+    
+    console.log('Tab navigation initialized successfully');
 }
 
 // =============================================
@@ -1422,5 +1445,16 @@ clearAllBtn.addEventListener('click', clearAllData);
 // =============================================
 // INITIALIZE APP
 // =============================================
+
+// Fallback initialization if splashscreen doesn't work
+setTimeout(() => {
+    const splashscreen = document.getElementById('splashscreen');
+    if (splashscreen && splashscreen.style.display !== 'none') {
+        console.log('Fallback: Initializing app after 5 seconds');
+        splashscreen.style.display = 'none';
+        initUserSystem();
+        initTabNavigation();
+    }
+}, 5000);
 
 // initUserSystem(); // Moved to after splash screen

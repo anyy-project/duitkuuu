@@ -927,6 +927,9 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     white-space: nowrap;
+    pointer-events: auto;
+    z-index: 1;
+    position: relative;
 }
 
 .tab-btn:hover {
