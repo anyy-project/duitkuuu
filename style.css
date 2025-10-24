@@ -908,6 +908,13 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-row .form-group {
+    min-width: 0;
+    overflow: hidden;
 }
 
 .form-group {
@@ -940,10 +947,24 @@ body {
     border-color: #667eea;
 }
 
-/* Date input specific styling */
-.form-group input[type="date"] {
+/* Report form specific styling */
+.report-card .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.report-card .form-group {
+    width: 100%;
     min-width: 0;
-    flex: 1;
+}
+
+.report-card input[type="date"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Button Styles */
@@ -1481,6 +1502,14 @@ body {
     .form-row {
         grid-template-columns: 1fr;
         gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .form-row .form-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
     }
 
     .form-group {
@@ -1500,6 +1529,12 @@ body {
     .form-group input[type="date"] {
         width: 100%;
         max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.9rem;
+        padding: 8px 10px;
     }
 
     .form-group label {
