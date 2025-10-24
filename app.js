@@ -141,96 +141,45 @@ const clearAllBtn = document.getElementById('clearAll');
 // USER MANAGEMENT
 // =============================================
 
-// Function to check and clean localStorage data
-function checkLocalStorageData() {
-    console.log('=== Checking localStorage data ===');
-    console.log('All localStorage keys:', Object.keys(localStorage));
-    
-    const users = localStorage.getItem('users');
-    const currentUser = localStorage.getItem('currentUser');
-    
-    console.log('users data:', users);
-    console.log('currentUser data:', currentUser);
-    
-    if (users) {
-        try {
-            const parsed = JSON.parse(users);
-            console.log('Parsed users:', parsed);
-            console.log('Users count:', Object.keys(parsed).length);
-        } catch (error) {
-            console.error('Corrupted users data:', error);
-            localStorage.removeItem('users');
-            localStorage.removeItem('currentUser');
-            console.log('Cleared corrupted data');
-        }
-    }
-    console.log('=== End localStorage check ===');
-}
-
 function initUserSystem() {
-    console.log('=== initUserSystem START ===');
-    
-    // Check localStorage data first
-    checkLocalStorageData();
-    
-    console.log('currentUser:', currentUser);
-    console.log('USERS before loading:', USERS);
-    
     // Load users from localStorage
     const savedUsers = localStorage.getItem('users');
-    console.log('savedUsers from localStorage:', savedUsers);
-    
     if (savedUsers) {
         try {
             const parsedUsers = JSON.parse(savedUsers);
-            console.log('parsedUsers:', parsedUsers);
             Object.assign(USERS, parsedUsers);
         } catch (error) {
-            console.error('Error parsing users:', error);
-            // Clear corrupted data
             localStorage.removeItem('users');
         }
     }
     
-    console.log('USERS after loading:', USERS);
-    console.log('Number of users:', Object.keys(USERS).length);
-    
-    // If no users exist, show name input modal
+    // SIMPLE LOGIC: If no users, show modal. Otherwise, hide it and start app.
     if (Object.keys(USERS).length === 0) {
-        console.log('❌ No users found, showing name input modal');
-        showNameInputModal();
+        // No users exist - show modal
+        nameInputModal.style.display = 'flex';
+        nameInputModal.classList.remove('hidden');
     } else {
-        console.log('✅ Users exist, hiding modal and initializing app');
-        // Hide modal first
+        // Users exist - hide modal and start app
+        nameInputModal.style.display = 'none';
         nameInputModal.classList.add('hidden');
-        console.log('Modal hidden, classes:', nameInputModal.classList.toString());
         
-        // Force hide modal as backup
-        setTimeout(() => {
-            forceHideModal();
-        }, 100);
-        
-        // If no current user is set, use the first available user
+        // Set current user if not set
         if (!currentUser) {
             currentUser = Object.keys(USERS)[0];
             localStorage.setItem('currentUser', currentUser);
-            console.log('Set current user to:', currentUser);
         }
         
-        // Initialize the app with existing user
+        // Initialize app
         updateUserUI();
         populateUserDropdown();
         loadUserData();
         init();
     }
-    console.log('=== initUserSystem END ===');
 }
 
 function showNameInputModal() {
-    console.log('showNameInputModal called');
-    console.log('nameInputModal element:', nameInputModal);
+    nameInputModal.style.display = 'flex';
     nameInputModal.classList.remove('hidden');
-    console.log('Modal classes after remove hidden:', nameInputModal.classList.toString());
     
     // Focus on name input
     setTimeout(() => {
@@ -239,15 +188,6 @@ function showNameInputModal() {
             nameInput.focus();
         }
     }, 100);
-}
-
-function forceHideModal() {
-    console.log('Force hiding modal');
-    if (nameInputModal) {
-        nameInputModal.classList.add('hidden');
-        nameInputModal.style.display = 'none';
-        console.log('Modal force hidden');
-    }
 }
 
 function createUserFromInput() {
@@ -276,6 +216,7 @@ function createUserFromInput() {
     localStorage.setItem('users', JSON.stringify(USERS));
     
     // Close modal and initialize app
+    nameInputModal.style.display = 'none';
     nameInputModal.classList.add('hidden');
     updateUserUI();
     populateUserDropdown();
