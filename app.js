@@ -614,6 +614,34 @@ function addTransaction(e) {
         date: dateInput.value
     };
 
+    // Special handling for savings category
+    if (transaction.type === 'expense' && transaction.category === 'saving') {
+        // Create a savings deposit transaction
+        const savingsTransaction = {
+            id: generateID(),
+            type: 'deposit',
+            amount: transaction.amount,
+            description: transaction.description,
+            date: transaction.date
+        };
+        
+        savingsTransactions.unshift(savingsTransaction);
+        saveData();
+        
+        // Update displays
+        updateSavingsDashboard();
+        displaySavingsHistory();
+        updateDashboard();
+        
+        form.reset();
+        dateInput.valueAsDate = new Date();
+        populateCategories();
+        
+        showNotification('✅ Tabungan berhasil ditambahkan melalui transaksi!');
+        return;
+    }
+
+    // Regular transaction handling
     transactions.unshift(transaction);
     saveData();
     
@@ -631,13 +659,30 @@ function addTransaction(e) {
 
 function deleteTransaction(id) {
     if (confirm('Yakin ingin menghapus transaksi ini?')) {
-        transactions = transactions.filter(t => t.id !== id);
-        saveData();
-        displayTransactions();
-        updateDashboard();
-        updateSavingsDashboard();
-        displaySavingsHistory();
-        showNotification('✅ Transaksi berhasil dihapus!');
+        // Check if this is a savings transaction from the old system
+        const transaction = transactions.find(t => t.id === id);
+        
+        if (transaction && transaction.type === 'expense' && transaction.category === 'saving') {
+            // This was a savings transaction, we need to handle it specially
+            // For now, we'll just remove it from transactions
+            // In a real scenario, you might want to create a withdrawal in savings
+            transactions = transactions.filter(t => t.id !== id);
+            saveData();
+            displayTransactions();
+            updateDashboard();
+            updateSavingsDashboard();
+            displaySavingsHistory();
+            showNotification('✅ Transaksi tabungan berhasil dihapus!');
+        } else {
+            // Regular transaction deletion
+            transactions = transactions.filter(t => t.id !== id);
+            saveData();
+            displayTransactions();
+            updateDashboard();
+            updateSavingsDashboard();
+            displaySavingsHistory();
+            showNotification('✅ Transaksi berhasil dihapus!');
+        }
     }
 }
 
@@ -725,14 +770,23 @@ function displayTransactions() {
         const formattedAmount = formatCurrency(transaction.amount);
         const categoryLabel = getCategoryLabel(transaction.category);
         
+        // Special styling for savings transactions
+        let categoryDisplay = categoryLabel;
+        let itemClass = transaction.type;
+        
+        if (transaction.type === 'expense' && transaction.category === 'saving') {
+            categoryDisplay = '💎 Tabungan (via Transaksi)';
+            itemClass = 'savings-via-transaction';
+        }
+        
         item.innerHTML = `
             <div class="transaction-info">
-                <span class="transaction-category">${categoryLabel}</span>
+                <span class="transaction-category">${categoryDisplay}</span>
                 <div class="transaction-description">${transaction.description}</div>
                 <div class="transaction-date">${formattedDate}</div>
             </div>
             <div class="transaction-amount-wrapper">
-                <span class="transaction-amount ${transaction.type}">
+                <span class="transaction-amount ${itemClass}">
                     ${sign} ${formattedAmount}
                 </span>
                 <button class="btn-delete" onclick="deleteTransaction('${transaction.id}')">
