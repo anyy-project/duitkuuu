@@ -1400,7 +1400,7 @@ function updateSavingsTarget() {
                     <div class="form-row">
                         <div class="form-group">
                             <label for="targetAmount">Target Jumlah (Rp)</label>
-                            <input type="number" id="targetAmount" placeholder="0" min="0" step="100000">
+                            <input type="number" id="targetAmount" placeholder="0" min="0" step="1">
                         </div>
                         <div class="form-group">
                             <label for="targetDate">Target Tanggal</label>
@@ -1843,7 +1843,23 @@ function generateID() {
 }
 
 function formatCurrency(amount) {
-    return 'Rp ' + amount.toLocaleString('id-ID');
+    // Convert to string to preserve precision
+    const amountStr = amount.toString();
+    
+    // Split into integer and decimal parts
+    const parts = amountStr.split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1] || '';
+    
+    // Format integer part with thousand separators
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with decimal part if exists
+    if (decimalPart) {
+        return 'Rp ' + formattedInteger + ',' + decimalPart;
+    } else {
+        return 'Rp ' + formattedInteger;
+    }
 }
 
 function formatDate(dateString) {
