@@ -1380,9 +1380,14 @@ body {
     background: #fef1f0;
 }
 
-.transaction-item.savings-via-transaction {
-    border-left-color: #667eea;
-    background: #f0f2ff;
+.transaction-item.savings-deposit {
+    border-left-color: #4CAF50;
+    background: #f1f8f4;
+}
+
+.transaction-item.savings-withdrawal {
+    border-left-color: #f44336;
+    background: #fef1f0;
 }
 
 .transaction-info {
@@ -1448,8 +1453,12 @@ body {
     color: #f44336;
 }
 
-.transaction-amount.savings-via-transaction {
-    color: #667eea;
+.transaction-amount.savings-deposit {
+    color: #4CAF50;
+}
+
+.transaction-amount.savings-withdrawal {
+    color: #f44336;
 }
 
 .btn-delete {

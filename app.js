@@ -625,10 +625,14 @@ function addTransaction(e) {
             date: transaction.date
         };
         
+        // Add to both savings transactions AND main transactions
         savingsTransactions.unshift(savingsTransaction);
+        transactions.unshift(transaction); // Keep the original transaction too
+        
         saveData();
         
         // Update displays
+        displayTransactions();
         updateSavingsDashboard();
         displaySavingsHistory();
         updateDashboard();
@@ -662,10 +666,27 @@ function deleteTransaction(id) {
         // Check if this is a savings transaction from the old system
         const transaction = transactions.find(t => t.id === id);
         
-        if (transaction && transaction.type === 'expense' && transaction.category === 'saving') {
-            // This was a savings transaction, we need to handle it specially
-            // For now, we'll just remove it from transactions
-            // In a real scenario, you might want to create a withdrawal in savings
+        if (transaction && transaction.category === 'saving') {
+            // This is a savings transaction, we need to handle it specially
+            if (transaction.type === 'expense') {
+                // This was a savings deposit, remove corresponding savings transaction
+                savingsTransactions = savingsTransactions.filter(t => 
+                    !(t.type === 'deposit' && 
+                      t.description === transaction.description &&
+                      t.amount === transaction.amount &&
+                      t.date === transaction.date)
+                );
+            } else if (transaction.type === 'income') {
+                // This was a savings withdrawal, remove corresponding savings transaction
+                savingsTransactions = savingsTransactions.filter(t => 
+                    !(t.type === 'withdrawal' && 
+                      t.description === transaction.description &&
+                      t.amount === transaction.amount &&
+                      t.date === transaction.date)
+                );
+            }
+            
+            // Remove from main transactions
             transactions = transactions.filter(t => t.id !== id);
             saveData();
             displayTransactions();
@@ -775,8 +796,11 @@ function displayTransactions() {
         let itemClass = transaction.type;
         
         if (transaction.type === 'expense' && transaction.category === 'saving') {
-            categoryDisplay = '💎 Tabungan (via Transaksi)';
-            itemClass = 'savings-via-transaction';
+            categoryDisplay = '💎 Tabungan (Setoran)';
+            itemClass = 'savings-deposit';
+        } else if (transaction.type === 'income' && transaction.category === 'saving') {
+            categoryDisplay = '💎 Tabungan (Penarikan)';
+            itemClass = 'savings-withdrawal';
         }
         
         item.innerHTML = `
@@ -1207,6 +1231,18 @@ function addSavingsTransaction(e) {
     };
 
     savingsTransactions.unshift(savingsTransaction);
+    
+    // Also add to main transactions for history tracking
+    const mainTransaction = {
+        id: generateID(),
+        type: savingsTransaction.type === 'deposit' ? 'expense' : 'income', // Deposit = expense (money out), withdrawal = income (money back)
+        category: 'saving',
+        description: savingsTransaction.description,
+        amount: savingsTransaction.amount,
+        date: savingsTransaction.date
+    };
+    transactions.unshift(mainTransaction);
+    
     saveData();
     
     // Update displays
@@ -1236,10 +1272,27 @@ function calculateSavingsBalance() {
 
 function deleteSavingsTransaction(id) {
     if (confirm('Yakin ingin menghapus transaksi tabungan ini?')) {
-        savingsTransactions = savingsTransactions.filter(t => t.id !== id);
+        // Find the savings transaction
+        const savingsTransaction = savingsTransactions.find(t => t.id === id);
+        
+        if (savingsTransaction) {
+            // Remove from savings transactions
+            savingsTransactions = savingsTransactions.filter(t => t.id !== id);
+            
+            // Also remove corresponding main transaction
+            // Find by description, amount, and date since they should match
+            transactions = transactions.filter(t => 
+                !(t.category === 'saving' && 
+                  t.description === savingsTransaction.description &&
+                  t.amount === savingsTransaction.amount &&
+                  t.date === savingsTransaction.date)
+            );
+        }
+        
         saveData();
         updateSavingsDashboard();
         displaySavingsHistory();
+        displayTransactions(); // Update main transaction list
         updateDashboard(); // Update main dashboard balance
         showNotification('✅ Transaksi tabungan berhasil dihapus!');
     }
