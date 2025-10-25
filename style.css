@@ -1370,6 +1370,16 @@ body {
     background: #fef1f0;
 }
 
+.transaction-item.deposit {
+    border-left-color: #4CAF50;
+    background: #f1f8f4;
+}
+
+.transaction-item.withdrawal {
+    border-left-color: #f44336;
+    background: #fef1f0;
+}
+
 .transaction-info {
     flex: 1;
     min-width: 0;
@@ -1422,6 +1432,14 @@ body {
 }
 
 .transaction-amount.expense {
+    color: #f44336;
+}
+
+.transaction-amount.deposit {
+    color: #4CAF50;
+}
+
+.transaction-amount.withdrawal {
     color: #f44336;
 }
 

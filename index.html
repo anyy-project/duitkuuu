@@ -304,19 +304,51 @@
                 <canvas id="savingsChart"></canvas>
             </div>
 
-            <!-- Info Card -->
+            <!-- Form Tabungan -->
             <div class="form-card">
-                <h3>💡 Cara Menggunakan Tabungan</h3>
-                <div class="info-content">
-                    <p>📝 <strong>Cara Menambah Tabungan:</strong></p>
-                    <p>1. Pergi ke tab <strong>"Transaksi"</strong></p>
-                    <p>2. Pilih jenis <strong>"Pengeluaran"</strong></p>
-                    <p>3. Pilih kategori <strong>"💎 Tabungan"</strong></p>
-                    <p>4. Masukkan jumlah dan keterangan</p>
-                    <p>5. Simpan transaksi</p>
-                    <br>
-                    <p>📊 Tabungan akan otomatis muncul di dashboard ini!</p>
-                </div>
+                <h3>💰 Kelola Tabungan</h3>
+                <form id="savingsForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="savingsType">Jenis Transaksi</label>
+                            <select id="savingsType" required>
+                                <option value="deposit">📥 Setor Tabungan</option>
+                                <option value="withdrawal">📤 Tarik Tabungan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="savingsAmount">Jumlah (Rp)</label>
+                            <input 
+                                type="number" 
+                                id="savingsAmount" 
+                                placeholder="0" 
+                                required
+                                min="0"
+                                step="1000"
+                            >
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="savingsDescription">Keterangan</label>
+                        <input 
+                            type="text" 
+                            id="savingsDescription" 
+                            placeholder="Contoh: Setoran bulanan atau tarik untuk kebutuhan mendesak" 
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="savingsDate">Tanggal</label>
+                        <input 
+                            type="date" 
+                            id="savingsDate" 
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>💾</span> Simpan Transaksi Tabungan
+                    </button>
+                </form>
             </div>
 
             <!-- Riwayat Transaksi Tabungan -->
