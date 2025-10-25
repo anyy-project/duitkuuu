@@ -2225,6 +2225,39 @@ body {
     font-size: 0.9rem;
 }
 
+/* Target Chart Styles */
+.target-chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.center-percentage {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #667eea;
+    line-height: 1;
+}
+
+.center-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
 /* Mobile Responsive for Target */
 @media (max-width: 768px) {
     .target-info {
@@ -2246,6 +2279,19 @@ body {
     
     .no-target-icon {
         font-size: 2.5rem;
+    }
+    
+    .target-chart-container {
+        height: 250px;
+        padding: 15px;
+    }
+    
+    .center-percentage {
+        font-size: 1.5rem;
+    }
+    
+    .center-label {
+        font-size: 0.8rem;
     }
 }
 

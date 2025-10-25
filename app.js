@@ -1337,6 +1337,7 @@ function updateSavingsDashboard() {
         
         // Update savings target
         updateSavingsTarget();
+        updateSavingsTargetChart();
         
         console.log('Savings dashboard updated successfully');
     } catch (error) {
@@ -1496,6 +1497,7 @@ function setSavingsTarget(e) {
     localStorage.setItem(getUserKey('savingsTarget'), JSON.stringify(savingsTarget));
     
     updateSavingsTarget();
+    updateSavingsTargetChart();
     showNotification('✅ Target nabung berhasil disimpan!');
 }
 
@@ -1503,6 +1505,7 @@ function clearSavingsTarget() {
     if (confirm('Yakin ingin menghapus target nabung?')) {
         localStorage.removeItem(getUserKey('savingsTarget'));
         updateSavingsTarget();
+        updateSavingsTargetChart();
         showNotification('✅ Target nabung berhasil dihapus!');
     }
 }
@@ -1515,6 +1518,125 @@ function calculateRequiredMonthlySavings(currentBalance, targetAmount, targetDat
     
     const remaining = targetAmount - currentBalance;
     return remaining > 0 ? remaining / diffMonths : 0;
+}
+
+function updateSavingsTargetChart() {
+    try {
+        console.log('Updating savings target chart...');
+        
+        const chartContainer = document.getElementById('savingsTargetChart');
+        const canvas = document.getElementById('targetChart');
+        
+        if (!chartContainer || !canvas) {
+            console.log('Target chart elements not found');
+            return;
+        }
+        
+        // Get current savings balance
+        const currentBalance = calculateSavingsBalance();
+        
+        // Get savings target from localStorage
+        const savingsTarget = JSON.parse(localStorage.getItem(getUserKey('savingsTarget'))) || {
+            amount: 0,
+            description: '',
+            targetDate: '',
+            monthlyTarget: 0
+        };
+        
+        // Only show chart if there's a target set
+        if (savingsTarget.amount > 0) {
+            chartContainer.style.display = 'block';
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.targetChart) {
+                window.targetChart.destroy();
+            }
+            
+            // Calculate remaining amount
+            const remaining = Math.max(0, savingsTarget.amount - currentBalance);
+            
+            // Create chart data
+            const chartData = {
+                labels: ['Terkumpul', 'Sisa Target'],
+                datasets: [{
+                    data: [currentBalance, remaining],
+                    backgroundColor: [
+                        '#4CAF50',  // Green for achieved
+                        '#E0E0E0'   // Gray for remaining
+                    ],
+                    borderColor: [
+                        '#388E3C',
+                        '#BDBDBD'
+                    ],
+                    borderWidth: 2
+                }]
+            };
+            
+            // Create new chart
+            window.targetChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const percentage = ((value / savingsTarget.amount) * 100).toFixed(1);
+                                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 1000
+                    }
+                }
+            });
+            
+            // Add center text
+            const centerText = document.createElement('div');
+            centerText.className = 'chart-center-text';
+            centerText.innerHTML = `
+                <div class="center-percentage">${((currentBalance / savingsTarget.amount) * 100).toFixed(1)}%</div>
+                <div class="center-label">Tercapai</div>
+            `;
+            
+            // Remove existing center text if any
+            const existingCenterText = chartContainer.querySelector('.chart-center-text');
+            if (existingCenterText) {
+                existingCenterText.remove();
+            }
+            
+            chartContainer.appendChild(centerText);
+            
+        } else {
+            // Hide chart if no target is set
+            chartContainer.style.display = 'none';
+        }
+        
+        console.log('Savings target chart updated successfully');
+    } catch (error) {
+        console.error('Error updating savings target chart:', error);
+    }
 }
 
 function displaySavingsHistory() {
