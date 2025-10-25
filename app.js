@@ -127,11 +127,13 @@ const dateInput = document.getElementById('date');
 const totalBalanceEl = document.getElementById('totalBalance');
 const totalIncomeEl = document.getElementById('totalIncome');
 const totalExpenseEl = document.getElementById('totalExpense');
+const mainSavingsBalanceEl = document.getElementById('mainSavingsBalance');
 
 // Stats
 const monthTransactionsEl = document.getElementById('monthTransactions');
 const avgExpenseEl = document.getElementById('avgExpense');
 const budgetUsedEl = document.getElementById('budgetUsed');
+const monthSavingsEl = document.getElementById('monthSavings');
 
 // Transactions
 const transactionsList = document.getElementById('transactionsList');
@@ -811,10 +813,18 @@ function updateBalance() {
         .reduce((sum, t) => sum + t.amount, 0);
 
     const balance = income - expense;
+    
+    // Calculate savings balance
+    const savingsBalance = calculateSavingsBalance();
 
     totalBalanceEl.textContent = formatCurrency(balance);
     totalIncomeEl.textContent = formatCurrency(income);
     totalExpenseEl.textContent = formatCurrency(expense);
+    
+    // Update main dashboard savings balance
+    if (mainSavingsBalanceEl) {
+        mainSavingsBalanceEl.textContent = formatCurrency(savingsBalance);
+    }
 }
 
 function updateStats() {
@@ -841,6 +851,25 @@ function updateStats() {
         .reduce((sum, t) => sum + t.amount, 0);
     const budgetPercentage = totalBudget > 0 ? (monthExpense / totalBudget * 100).toFixed(1) : 0;
     budgetUsedEl.textContent = budgetPercentage + '%';
+    
+    // Monthly savings
+    const monthSavings = savingsTransactions.filter(t => {
+        const tDate = new Date(t.date);
+        return tDate.getMonth() === today.getMonth() && 
+               tDate.getFullYear() === today.getFullYear();
+    });
+    
+    const savingsDeposits = monthSavings
+        .filter(t => t.type === 'deposit')
+        .reduce((sum, t) => sum + t.amount, 0);
+    const savingsWithdrawals = monthSavings
+        .filter(t => t.type === 'withdrawal')
+        .reduce((sum, t) => sum + t.amount, 0);
+    const netSavings = savingsDeposits - savingsWithdrawals;
+    
+    if (monthSavingsEl) {
+        monthSavingsEl.textContent = formatCurrency(netSavings);
+    }
 }
 
 function updateCharts() {
@@ -856,6 +885,7 @@ function updateIncomeExpenseChart() {
     const months = [];
     const incomeData = [];
     const expenseData = [];
+    const savingsData = [];
     
     for (let i = 5; i >= 0; i--) {
         const date = new Date();
@@ -876,8 +906,24 @@ function updateIncomeExpenseChart() {
             .filter(t => t.type === 'expense')
             .reduce((sum, t) => sum + t.amount, 0);
             
+        // Calculate savings for this month
+        const monthSavings = savingsTransactions.filter(t => {
+            const tDate = new Date(t.date);
+            return tDate.getMonth() === date.getMonth() && 
+                   tDate.getFullYear() === date.getFullYear();
+        });
+        
+        const savingsDeposits = monthSavings
+            .filter(t => t.type === 'deposit')
+            .reduce((sum, t) => sum + t.amount, 0);
+        const savingsWithdrawals = monthSavings
+            .filter(t => t.type === 'withdrawal')
+            .reduce((sum, t) => sum + t.amount, 0);
+        const netSavings = savingsDeposits - savingsWithdrawals;
+            
         incomeData.push(income);
         expenseData.push(expense);
+        savingsData.push(netSavings);
     }
     
     if (incomeExpenseChart) {
@@ -895,7 +941,7 @@ function updateIncomeExpenseChart() {
                     borderColor: '#4CAF50',
                     backgroundColor: 'rgba(76, 175, 80, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: false
                 },
                 {
                     label: 'Pengeluaran',
@@ -903,7 +949,15 @@ function updateIncomeExpenseChart() {
                     borderColor: '#f44336',
                     backgroundColor: 'rgba(244, 67, 54, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: false
+                },
+                {
+                    label: 'Tabungan Bersih',
+                    data: savingsData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: false
                 }
             ]
         },
