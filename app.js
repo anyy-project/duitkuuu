@@ -695,13 +695,13 @@ function deleteTransaction(id) {
             showNotification('✅ Transaksi tabungan berhasil dihapus!');
         } else {
             // Regular transaction deletion
-            transactions = transactions.filter(t => t.id !== id);
-            saveData();
-            displayTransactions();
-            updateDashboard();
-            updateSavingsDashboard();
-            displaySavingsHistory();
-            showNotification('✅ Transaksi berhasil dihapus!');
+        transactions = transactions.filter(t => t.id !== id);
+        saveData();
+        displayTransactions();
+        updateDashboard();
+        updateSavingsDashboard();
+        displaySavingsHistory();
+        showNotification('✅ Transaksi berhasil dihapus!');
         }
     }
 }
@@ -1335,8 +1335,8 @@ function updateSavingsDashboard() {
             savingsWithdrawalEl.textContent = formatCurrency(totalWithdrawals);
         }
         
-        // Update savings chart
-        updateSavingsChart();
+        // Update savings target
+        updateSavingsTarget();
         
         console.log('Savings dashboard updated successfully');
     } catch (error) {
@@ -1344,124 +1344,177 @@ function updateSavingsDashboard() {
     }
 }
 
-function updateSavingsChart() {
+function updateSavingsTarget() {
     try {
-        console.log('Updating savings chart...');
+        console.log('Updating savings target...');
         
-        const canvas = document.getElementById('savingsChart');
-        if (!canvas) {
-            console.log('Savings chart canvas not found');
+        const savingsTargetEl = document.getElementById('savingsTarget');
+        if (!savingsTargetEl) {
+            console.log('Savings target element not found');
             return;
         }
         
-        console.log('Canvas found:', canvas);
+        // Get current savings balance
+        const currentBalance = calculateSavingsBalance();
         
-        const ctx = canvas.getContext('2d');
+        // Get savings target from localStorage
+        const savingsTarget = JSON.parse(localStorage.getItem(getUserKey('savingsTarget'))) || {
+            amount: 0,
+            description: '',
+            targetDate: '',
+            monthlyTarget: 0
+        };
         
-        // Get savings transactions grouped by month
-        const monthlySavings = {};
+        // Calculate progress
+        const progress = savingsTarget.amount > 0 ? (currentBalance / savingsTarget.amount * 100) : 0;
+        const remaining = Math.max(0, savingsTarget.amount - currentBalance);
         
-        savingsTransactions.forEach(t => {
-            const date = new Date(t.date);
-            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        // Calculate time remaining
+        let timeRemaining = '';
+        if (savingsTarget.targetDate) {
+            const targetDate = new Date(savingsTarget.targetDate);
+            const today = new Date();
+            const diffTime = targetDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            if (!monthlySavings[monthKey]) {
-                monthlySavings[monthKey] = { deposits: 0, withdrawals: 0 };
+            if (diffDays > 0) {
+                timeRemaining = `${diffDays} hari lagi`;
+            } else if (diffDays === 0) {
+                timeRemaining = 'Hari ini!';
+            } else {
+                timeRemaining = 'Target sudah lewat';
             }
-            
-            if (t.type === 'deposit') {
-                monthlySavings[monthKey].deposits += t.amount;
-            } else if (t.type === 'withdrawal') {
-                monthlySavings[monthKey].withdrawals += t.amount;
-            }
-        });
-        
-        // Get last 6 months
-        const months = [];
-        const depositsData = [];
-        const withdrawalsData = [];
-        const balanceData = [];
-        
-        let runningBalance = 0;
-        
-        for (let i = 5; i >= 0; i--) {
-            const date = new Date();
-            date.setMonth(date.getMonth() - i);
-            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-            const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
-            
-            const monthData = monthlySavings[monthKey] || { deposits: 0, withdrawals: 0 };
-            runningBalance += monthData.deposits - monthData.withdrawals;
-            
-            months.push(monthName);
-            depositsData.push(monthData.deposits);
-            withdrawalsData.push(monthData.withdrawals);
-            balanceData.push(runningBalance);
         }
         
-        // Destroy existing chart if it exists
-        if (window.savingsChart) {
-            window.savingsChart.destroy();
+        // Calculate required monthly savings
+        const requiredMonthly = savingsTarget.targetDate && savingsTarget.amount > 0 
+            ? calculateRequiredMonthlySavings(currentBalance, savingsTarget.amount, savingsTarget.targetDate)
+            : 0;
+        
+        // Create target HTML
+        savingsTargetEl.innerHTML = `
+            <div class="target-form">
+                <h4>📝 Set Target Nabung</h4>
+                <form id="targetForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetAmount">Target Jumlah (Rp)</label>
+                            <input type="number" id="targetAmount" placeholder="0" min="0" step="100000">
+                        </div>
+                        <div class="form-group">
+                            <label for="targetDate">Target Tanggal</label>
+                            <input type="date" id="targetDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="targetDescription">Keterangan Target</label>
+                        <input type="text" id="targetDescription" placeholder="Contoh: Liburan ke Bali, Beli Laptop, dll">
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>🎯</span> Set Target
+                    </button>
+                </form>
+            </div>
+            
+            ${savingsTarget.amount > 0 ? `
+            <div class="target-progress">
+                <h4>📊 Progress Target</h4>
+                <div class="target-info">
+                    <div class="target-goal">
+                        <span class="target-label">Target:</span>
+                        <span class="target-value">${formatCurrency(savingsTarget.amount)}</span>
+                    </div>
+                    <div class="target-current">
+                        <span class="target-label">Terkumpul:</span>
+                        <span class="target-value">${formatCurrency(currentBalance)}</span>
+                    </div>
+                    <div class="target-remaining">
+                        <span class="target-label">Sisa:</span>
+                        <span class="target-value">${formatCurrency(remaining)}</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
+                </div>
+                <div class="progress-text">${progress.toFixed(1)}% tercapai</div>
+                
+                ${savingsTarget.description ? `<div class="target-description">🎯 ${savingsTarget.description}</div>` : ''}
+                ${timeRemaining ? `<div class="target-time">⏰ ${timeRemaining}</div>` : ''}
+                
+                ${requiredMonthly > 0 ? `
+                <div class="monthly-target">
+                    <h5>💡 Rekomendasi</h5>
+                    <p>Untuk mencapai target tepat waktu, Anda perlu menabung <strong>${formatCurrency(requiredMonthly)}</strong> per bulan.</p>
+                </div>
+                ` : ''}
+                
+                <button onclick="clearSavingsTarget()" class="btn-secondary">
+                    🗑️ Hapus Target
+                </button>
+            </div>
+            ` : `
+            <div class="no-target">
+                <div class="no-target-icon">🎯</div>
+                <h4>Belum Ada Target</h4>
+                <p>Set target nabung untuk memotivasi diri dan melacak progress!</p>
+            </div>
+            `}
+        `;
+        
+        // Add event listener for target form
+        const targetForm = document.getElementById('targetForm');
+        if (targetForm) {
+            targetForm.addEventListener('submit', setSavingsTarget);
         }
         
-        // Create new chart
-        window.savingsChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: 'Setoran',
-                        data: depositsData,
-                        borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                        tension: 0.4,
-                        fill: false
-                    },
-                    {
-                        label: 'Penarikan',
-                        data: withdrawalsData,
-                        borderColor: '#f44336',
-                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                        tension: 0.4,
-                        fill: false
-                    },
-                    {
-                        label: 'Saldo Tabungan',
-                        data: balanceData,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'Rp ' + (value / 1000) + 'k';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        console.log('Savings chart updated successfully');
+        console.log('Savings target updated successfully');
     } catch (error) {
-        console.error('Error updating savings chart:', error);
+        console.error('Error updating savings target:', error);
     }
+}
+
+function setSavingsTarget(e) {
+    e.preventDefault();
+    
+    const amount = parseFloat(document.getElementById('targetAmount').value);
+    const targetDate = document.getElementById('targetDate').value;
+    const description = document.getElementById('targetDescription').value.trim();
+    
+    if (!amount || amount <= 0) {
+        alert('Masukkan target jumlah yang valid!');
+        return;
+    }
+    
+    const savingsTarget = {
+        amount: amount,
+        targetDate: targetDate,
+        description: description,
+        monthlyTarget: 0
+    };
+    
+    localStorage.setItem(getUserKey('savingsTarget'), JSON.stringify(savingsTarget));
+    
+    updateSavingsTarget();
+    showNotification('✅ Target nabung berhasil disimpan!');
+}
+
+function clearSavingsTarget() {
+    if (confirm('Yakin ingin menghapus target nabung?')) {
+        localStorage.removeItem(getUserKey('savingsTarget'));
+        updateSavingsTarget();
+        showNotification('✅ Target nabung berhasil dihapus!');
+    }
+}
+
+function calculateRequiredMonthlySavings(currentBalance, targetAmount, targetDate) {
+    const target = new Date(targetDate);
+    const today = new Date();
+    const diffTime = target - today;
+    const diffMonths = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30)));
+    
+    const remaining = targetAmount - currentBalance;
+    return remaining > 0 ? remaining / diffMonths : 0;
 }
 
 function displaySavingsHistory() {
