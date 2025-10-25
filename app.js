@@ -159,7 +159,6 @@ const budgetList = document.getElementById('budgetList');
 
 // Savings
 const savingsForm = document.getElementById('savingsForm');
-const savingsTypeSelect = document.getElementById('savingsType');
 const savingsAmountInput = document.getElementById('savingsAmount');
 const savingsDescriptionInput = document.getElementById('savingsDescription');
 const savingsDateInput = document.getElementById('savingsDate');
@@ -1208,23 +1207,20 @@ function deleteBudget(category) {
 function addSavingsTransaction(e) {
     e.preventDefault();
 
-    const type = savingsTypeSelect.value;
     const amount = parseFloat(savingsAmountInput.value);
     const description = savingsDescriptionInput.value.trim();
     const date = savingsDateInput.value;
 
-    // For withdrawals, check if there's enough balance
-    if (type === 'withdrawal') {
-        const currentBalance = calculateSavingsBalance();
-        if (amount > currentBalance) {
-            alert(`Saldo tabungan tidak mencukupi!\nSaldo saat ini: ${formatCurrency(currentBalance)}\nJumlah yang ingin ditarik: ${formatCurrency(amount)}`);
-            return;
-        }
+    // Check if there's enough balance for withdrawal
+    const currentBalance = calculateSavingsBalance();
+    if (amount > currentBalance) {
+        alert(`Saldo tabungan tidak mencukupi!\nSaldo saat ini: ${formatCurrency(currentBalance)}\nJumlah yang ingin ditarik: ${formatCurrency(amount)}`);
+        return;
     }
 
     const savingsTransaction = {
         id: generateID(),
-        type: type,
+        type: 'withdrawal',
         amount: amount,
         description: description,
         date: date
@@ -1235,7 +1231,7 @@ function addSavingsTransaction(e) {
     // Also add to main transactions for history tracking
     const mainTransaction = {
         id: generateID(),
-        type: savingsTransaction.type === 'deposit' ? 'expense' : 'income', // Deposit = expense (money out), withdrawal = income (money back)
+        type: 'income', // Withdrawal = income (money back to main account)
         category: 'saving',
         description: savingsTransaction.description,
         amount: savingsTransaction.amount,
@@ -1248,14 +1244,14 @@ function addSavingsTransaction(e) {
     // Update displays
     updateSavingsDashboard();
     displaySavingsHistory();
+    displayTransactions(); // Update main transaction list
     updateDashboard(); // Update main dashboard balance
 
     // Reset form
     savingsForm.reset();
     savingsDateInput.valueAsDate = new Date();
     
-    const actionText = type === 'deposit' ? 'disetor' : 'ditarik';
-    showNotification(`✅ Tabungan berhasil ${actionText}!`);
+    showNotification('✅ Tabungan berhasil ditarik!');
 }
 
 function calculateSavingsBalance() {

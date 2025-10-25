@@ -315,16 +315,9 @@
 
             <!-- Form Tabungan -->
             <div class="form-card">
-                <h3>💰 Kelola Tabungan</h3>
+                <h3>📤 Tarik Tabungan</h3>
                 <form id="savingsForm">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="savingsType">Jenis Transaksi</label>
-                            <select id="savingsType" required>
-                                <option value="deposit">📥 Setor Tabungan</option>
-                                <option value="withdrawal">📤 Tarik Tabungan</option>
-                            </select>
-                        </div>
                         <div class="form-group">
                             <label for="savingsAmount">Jumlah (Rp)</label>
                             <input 
@@ -336,26 +329,26 @@
                                 step="1000"
                             >
                         </div>
+                        <div class="form-group">
+                            <label for="savingsDate">Tanggal</label>
+                            <input 
+                                type="date" 
+                                id="savingsDate" 
+                                required
+                            >
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="savingsDescription">Keterangan</label>
                         <input 
                             type="text" 
                             id="savingsDescription" 
-                            placeholder="Contoh: Setoran bulanan atau tarik untuk kebutuhan mendesak" 
-                            required
-                        >
-                    </div>
-                    <div class="form-group">
-                        <label for="savingsDate">Tanggal</label>
-                        <input 
-                            type="date" 
-                            id="savingsDate" 
+                            placeholder="Contoh: Tarik untuk kebutuhan mendesak" 
                             required
                         >
                     </div>
                     <button type="submit" class="btn-primary">
-                        <span>💾</span> Simpan Transaksi Tabungan
+                        <span>📤</span> Tarik Tabungan
                     </button>
                 </form>
             </div>
