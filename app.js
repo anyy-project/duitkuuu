@@ -952,6 +952,7 @@ function updateStats() {
 function updateCharts() {
     updateIncomeExpenseChart();
     updateCategoryChart();
+    updateCategoryDetails();
 }
 
 function updateIncomeExpenseChart() {
@@ -1111,10 +1112,129 @@ function updateCategoryChart() {
                 legend: {
                     display: true,
                     position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const categoryValue = Object.keys(categoryData)[index];
+                    showCategoryDetails(categoryValue);
                 }
             }
         }
     });
+}
+
+function updateCategoryDetails() {
+    const categoryDetailsList = document.getElementById('categoryDetailsList');
+    if (!categoryDetailsList) return;
+    
+    // Get expense by category with transactions
+    const categoryData = {};
+    const expenses = transactions.filter(t => t.type === 'expense');
+    
+    expenses.forEach(t => {
+        if (!categoryData[t.category]) {
+            categoryData[t.category] = {
+                total: 0,
+                transactions: []
+            };
+        }
+        categoryData[t.category].total += t.amount;
+        categoryData[t.category].transactions.push(t);
+    });
+    
+    if (Object.keys(categoryData).length === 0) {
+        categoryDetailsList.innerHTML = '<p class="empty-state">Belum ada data pengeluaran.</p>';
+        return;
+    }
+    
+    // Sort by total amount (descending)
+    const sortedCategories = Object.entries(categoryData)
+        .sort((a, b) => b[1].total - a[1].total);
+    
+    categoryDetailsList.innerHTML = '';
+    
+    sortedCategories.forEach(([category, data]) => {
+        const categoryLabel = getCategoryLabel(category);
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-detail-item';
+        categoryItem.style.cssText = 'margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #667eea;';
+        
+        // Sort transactions by date (newest first)
+        const sortedTransactions = data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        categoryItem.innerHTML = `
+            <div class="category-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer;" onclick="toggleCategoryDetails('${category}')">
+                <div>
+                    <h4 style="margin: 0; color: #333;">${categoryLabel}</h4>
+                    <small style="color: #666;">${data.transactions.length} transaksi</small>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.2em; font-weight: 600; color: #f44336;">${formatCurrency(data.total)}</div>
+                    <span class="toggle-icon" id="toggle-${category}" style="font-size: 0.9em; color: #666;">▼</span>
+                </div>
+            </div>
+            <div class="category-transactions" id="transactions-${category}" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;">
+                ${sortedTransactions.map(transaction => {
+                    const formattedDate = formatDate(transaction.date);
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; margin-bottom: 4px;">${transaction.description}</div>
+                                <div style="font-size: 0.85em; color: #666;">${formattedDate}</div>
+                            </div>
+                            <div style="text-align: right; font-weight: 600; color: #f44336;">
+                                ${formatCurrency(transaction.amount)}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        
+        categoryDetailsList.appendChild(categoryItem);
+    });
+}
+
+function toggleCategoryDetails(category) {
+    const transactionsDiv = document.getElementById(`transactions-${category}`);
+    const toggleIcon = document.getElementById(`toggle-${category}`);
+    
+    if (transactionsDiv && toggleIcon) {
+        if (transactionsDiv.style.display === 'none') {
+            transactionsDiv.style.display = 'block';
+            toggleIcon.textContent = '▲';
+        } else {
+            transactionsDiv.style.display = 'none';
+            toggleIcon.textContent = '▼';
+        }
+    }
+}
+
+function showCategoryDetails(categoryValue) {
+    // Scroll to category details section
+    const categoryDetailsList = document.getElementById('categoryDetailsList');
+    if (categoryDetailsList) {
+        categoryDetailsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Find and expand the category
+        const transactionsDiv = document.getElementById(`transactions-${categoryValue}`);
+        if (transactionsDiv && transactionsDiv.style.display === 'none') {
+            toggleCategoryDetails(categoryValue);
+        }
+    }
 }
 
 // =============================================
