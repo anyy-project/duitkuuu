@@ -1204,12 +1204,56 @@ function deleteBudget(category) {
 // SAVINGS MANAGEMENT
 // =============================================
 
+// Gold price per gram in IDR (default: 1,000,000 IDR per gram)
+// This can be updated from localStorage or API
+const DEFAULT_GOLD_PRICE = 1000000; // 1 juta per gram
+
+function getGoldPrice() {
+    const savedPrice = localStorage.getItem(getUserKey('goldPrice'));
+    return savedPrice ? parseFloat(savedPrice) : DEFAULT_GOLD_PRICE;
+}
+
+function setGoldPrice(price) {
+    localStorage.setItem(getUserKey('goldPrice'), price.toString());
+}
+
+function convertToGold(amountInRupiah) {
+    const goldPrice = getGoldPrice();
+    return amountInRupiah / goldPrice;
+}
+
+function formatGold(grams) {
+    if (grams < 0.001) {
+        return '0 gram';
+    } else if (grams < 1) {
+        return `${(grams * 1000).toFixed(0)} mg`;
+    } else {
+        // Format as whole number if it's a whole number, otherwise 1 decimal
+        if (grams % 1 === 0) {
+            return `${grams.toFixed(0)} gram`;
+        } else {
+            return `${grams.toFixed(1)} gram`;
+        }
+    }
+}
+
 function addSavingsTransaction(e) {
     e.preventDefault();
 
     const amount = parseFloat(savingsAmountInput.value);
     const description = savingsDescriptionInput.value.trim();
     const date = savingsDateInput.value;
+    const forGoldPurchase = document.getElementById('forGoldPurchase').checked;
+    const goldGramsInput = document.getElementById('goldGrams');
+    const goldGrams = forGoldPurchase && goldGramsInput ? parseFloat(goldGramsInput.value) : null;
+
+    // Validate gold grams if for gold purchase
+    if (forGoldPurchase) {
+        if (!goldGrams || goldGrams <= 0) {
+            alert('Masukkan jumlah gram emas yang dibeli!');
+            return;
+        }
+    }
 
     // Check if there's enough balance for withdrawal
     const currentBalance = calculateSavingsBalance();
@@ -1223,7 +1267,9 @@ function addSavingsTransaction(e) {
         type: 'withdrawal',
         amount: amount,
         description: description,
-        date: date
+        date: date,
+        forGoldPurchase: forGoldPurchase || false,
+        goldGrams: forGoldPurchase ? goldGrams : null
     };
 
     savingsTransactions.unshift(savingsTransaction);
@@ -1250,8 +1296,13 @@ function addSavingsTransaction(e) {
     // Reset form
     savingsForm.reset();
     savingsDateInput.valueAsDate = new Date();
+    document.getElementById('goldGramsGroup').style.display = 'none';
     
-    showNotification('✅ Tabungan berhasil ditarik!');
+    if (forGoldPurchase) {
+        showNotification(`✅ Tabungan berhasil ditarik untuk beli emas!\n🥇 ${formatGold(goldGrams)}`);
+    } else {
+        showNotification('✅ Tabungan berhasil ditarik!');
+    }
 }
 
 function calculateSavingsBalance() {
@@ -1315,7 +1366,7 @@ function updateSavingsDashboard() {
         console.log('Total withdrawals:', totalWithdrawals);
         console.log('Savings balance:', savingsBalance);
         
-        // Update UI elements
+        // Update UI elements - konvensional
         const savingsBalanceEl = document.getElementById('savingsBalance');
         const savingsDepositEl = document.getElementById('savingsDeposit');
         const savingsWithdrawalEl = document.getElementById('savingsWithdrawal');
@@ -1335,9 +1386,8 @@ function updateSavingsDashboard() {
             savingsWithdrawalEl.textContent = formatCurrency(totalWithdrawals);
         }
         
-        // Update savings target
-        updateSavingsTarget();
-        updateSavingsTargetChart();
+        // Update gold savings display
+        updateGoldSavingsDisplay();
         
         console.log('Savings dashboard updated successfully');
     } catch (error) {
@@ -1345,299 +1395,94 @@ function updateSavingsDashboard() {
     }
 }
 
-function updateSavingsTarget() {
+function updateGoldSavingsDisplay() {
     try {
-        console.log('Updating savings target...');
+        const savingsBalance = calculateSavingsBalance();
+        const goldBalance = convertToGold(savingsBalance);
+        const goldPrice = getGoldPrice();
         
-        const savingsTargetEl = document.getElementById('savingsTarget');
-        if (!savingsTargetEl) {
-            console.log('Savings target element not found');
-            return;
-        }
+        // Get withdrawals used for gold purchase
+        const goldPurchases = savingsTransactions
+            .filter(t => t.type === 'withdrawal' && t.forGoldPurchase === true)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
         
-        // Get current savings balance
-        const currentBalance = calculateSavingsBalance();
+        // Calculate total amount used for gold purchase
+        const totalGoldPurchaseAmount = goldPurchases
+            .reduce((sum, t) => sum + t.amount, 0);
         
-        // Get savings target from localStorage
-        const savingsTarget = JSON.parse(localStorage.getItem(getUserKey('savingsTarget'))) || {
-            amount: 0,
-            description: '',
-            targetDate: '',
-            monthlyTarget: 0
-        };
+        // Calculate total gold purchased (using input grams or convert from amount)
+        const totalGoldPurchased = goldPurchases
+            .reduce((sum, t) => sum + (t.goldGrams || convertToGold(t.amount)), 0);
         
-        // Calculate progress
-        const progress = savingsTarget.amount > 0 ? (currentBalance / savingsTarget.amount * 100) : 0;
-        const remaining = Math.max(0, savingsTarget.amount - currentBalance);
-        
-        // Calculate time remaining
-        let timeRemaining = '';
-        if (savingsTarget.targetDate) {
-            const targetDate = new Date(savingsTarget.targetDate);
-            const today = new Date();
-            const diffTime = targetDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays > 0) {
-                timeRemaining = `${diffDays} hari lagi`;
-            } else if (diffDays === 0) {
-                timeRemaining = 'Hari ini!';
-            } else {
-                timeRemaining = 'Target sudah lewat';
-            }
-        }
-        
-        // Calculate required monthly savings
-        const requiredMonthly = savingsTarget.targetDate && savingsTarget.amount > 0 
-            ? calculateRequiredMonthlySavings(currentBalance, savingsTarget.amount, savingsTarget.targetDate)
-            : 0;
-        
-        // Create target HTML
-        savingsTargetEl.innerHTML = `
-            <div class="target-form">
-                <h4>📝 Set Target Nabung</h4>
-                <form id="targetForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="targetAmount">Target Jumlah (Rp)</label>
-                            <input type="number" id="targetAmount" placeholder="0" min="0" step="1">
+        // Update gold savings section
+        const goldSavingsEl = document.getElementById('goldSavingsDisplay');
+        if (goldSavingsEl) {
+            goldSavingsEl.innerHTML = `
+                <div class="gold-info">
+                    <div class="gold-balance">
+                        <h4>🥇 Tabungan Emas</h4>
+                    </div>
+                    
+                    <div class="gold-stats" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        <div class="gold-stat-item" style="display: flex; justify-content: space-between; margin-bottom: 10px; padding: 10px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <span style="color: #666; font-weight: 500;">🥇 Total Emas Dibeli:</span>
+                            <strong style="color: #ff9800; font-size: 1.1em;">${formatGold(totalGoldPurchased)}</strong>
+                            <small style="color: #999; margin-left: 10px;">(${formatCurrency(totalGoldPurchaseAmount)})</small>
                         </div>
-                        <div class="form-group">
-                            <label for="targetDate">Target Tanggal</label>
-                            <input type="date" id="targetDate">
+                        <div class="gold-stat-item" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #666;">📊 Jumlah Pembelian:</span>
+                            <strong style="color: #666;">${goldPurchases.length} kali</strong>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="targetDescription">Keterangan Target</label>
-                        <input type="text" id="targetDescription" placeholder="Contoh: Liburan ke Bali, Beli Laptop, dll">
+                    
+                    ${goldPurchases.length > 0 ? `
+                    <div class="gold-purchases" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        <h5 style="margin-bottom: 15px; font-size: 0.95em; color: #666;">📋 Riwayat Pembelian Emas:</h5>
+                        <div class="purchase-list" style="max-height: 300px; overflow-y: auto;">
+                            ${goldPurchases.map(purchase => {
+                                // Use input grams if available, otherwise convert from amount
+                                const purchaseGold = purchase.goldGrams || convertToGold(purchase.amount);
+                                const formattedDate = formatDate(purchase.date);
+                                return `
+                                    <div class="purchase-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ffc107;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; margin-bottom: 4px; color: #856404;">🥇 ${purchase.description}</div>
+                                            <div style="font-size: 0.85em; color: #666;">${formattedDate}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-weight: 700; color: #ff9800; font-size: 1.1em;">${formatGold(purchaseGold)}</div>
+                                            <div style="font-size: 0.8em; color: #999;">${formatCurrency(purchase.amount)}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary">
-                        <span>🎯</span> Set Target
-                    </button>
-                </form>
-            </div>
-            
-            ${savingsTarget.amount > 0 ? `
-            <div class="target-progress">
-                <h4>📊 Progress Target</h4>
-                <div class="target-info">
-                    <div class="target-goal">
-                        <span class="target-label">Target:</span>
-                        <span class="target-value">${formatCurrency(savingsTarget.amount)}</span>
+                    ` : `
+                    <div class="no-gold-purchases" style="margin-top: 20px; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px;">
+                        <div style="font-size: 2em; margin-bottom: 10px;">🥇</div>
+                        <p style="color: #666; margin: 0;">Belum ada pembelian emas dari tabungan</p>
+                        <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Centang "Digunakan untuk beli emas" saat menarik tabungan</p>
                     </div>
-                    <div class="target-current">
-                        <span class="target-label">Terkumpul:</span>
-                        <span class="target-value">${formatCurrency(currentBalance)}</span>
-                    </div>
-                    <div class="target-remaining">
-                        <span class="target-label">Sisa:</span>
-                        <span class="target-value">${formatCurrency(remaining)}</span>
-                    </div>
+                    `}
                 </div>
-                
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
-                </div>
-                <div class="progress-text">${progress.toFixed(1)}% tercapai</div>
-                
-                ${savingsTarget.description ? `<div class="target-description">🎯 ${savingsTarget.description}</div>` : ''}
-                ${timeRemaining ? `<div class="target-time">⏰ ${timeRemaining}</div>` : ''}
-                
-                ${requiredMonthly > 0 ? `
-                <div class="monthly-target">
-                    <h5>💡 Rekomendasi</h5>
-                    <p>Untuk mencapai target tepat waktu, Anda perlu menabung <strong>${formatCurrency(requiredMonthly)}</strong> per bulan.</p>
-                </div>
-                ` : ''}
-                
-                <button onclick="clearSavingsTarget()" class="btn-secondary">
-                    🗑️ Hapus Target
-                </button>
-            </div>
-            ` : `
-            <div class="no-target">
-                <div class="no-target-icon">🎯</div>
-                <h4>Belum Ada Target</h4>
-                <p>Set target nabung untuk memotivasi diri dan melacak progress!</p>
-            </div>
-            `}
-        `;
-        
-        // Add event listener for target form
-        const targetForm = document.getElementById('targetForm');
-        if (targetForm) {
-            targetForm.addEventListener('submit', setSavingsTarget);
-        }
-        
-        console.log('Savings target updated successfully');
-    } catch (error) {
-        console.error('Error updating savings target:', error);
-    }
-}
-
-function setSavingsTarget(e) {
-    e.preventDefault();
-    
-    const amount = parseFloat(document.getElementById('targetAmount').value);
-    const targetDate = document.getElementById('targetDate').value;
-    const description = document.getElementById('targetDescription').value.trim();
-    
-    if (!amount || amount <= 0) {
-        alert('Masukkan target jumlah yang valid!');
-        return;
-    }
-    
-    const savingsTarget = {
-        amount: amount,
-        targetDate: targetDate,
-        description: description,
-        monthlyTarget: 0
-    };
-    
-    localStorage.setItem(getUserKey('savingsTarget'), JSON.stringify(savingsTarget));
-    
-    updateSavingsTarget();
-    updateSavingsTargetChart();
-    showNotification('✅ Target nabung berhasil disimpan!');
-}
-
-function clearSavingsTarget() {
-    if (confirm('Yakin ingin menghapus target nabung?')) {
-        localStorage.removeItem(getUserKey('savingsTarget'));
-        updateSavingsTarget();
-        updateSavingsTargetChart();
-        showNotification('✅ Target nabung berhasil dihapus!');
-    }
-}
-
-function calculateRequiredMonthlySavings(currentBalance, targetAmount, targetDate) {
-    const target = new Date(targetDate);
-    const today = new Date();
-    const diffTime = target - today;
-    const diffMonths = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30)));
-    
-    const remaining = targetAmount - currentBalance;
-    return remaining > 0 ? remaining / diffMonths : 0;
-}
-
-function updateSavingsTargetChart() {
-    try {
-        console.log('Updating savings target chart...');
-        
-        const chartContainer = document.getElementById('savingsTargetChart');
-        const canvas = document.getElementById('targetChart');
-        
-        if (!chartContainer || !canvas) {
-            console.log('Target chart elements not found');
-            return;
-        }
-        
-        // Get current savings balance
-        const currentBalance = calculateSavingsBalance();
-        
-        // Get savings target from localStorage
-        const savingsTarget = JSON.parse(localStorage.getItem(getUserKey('savingsTarget'))) || {
-            amount: 0,
-            description: '',
-            targetDate: '',
-            monthlyTarget: 0
-        };
-        
-        // Only show chart if there's a target set
-        if (savingsTarget.amount > 0) {
-            chartContainer.style.display = 'block';
-            
-            const ctx = canvas.getContext('2d');
-            
-            // Destroy existing chart if it exists
-            if (window.targetChart) {
-                window.targetChart.destroy();
-            }
-            
-            // Calculate remaining amount
-            const remaining = Math.max(0, savingsTarget.amount - currentBalance);
-            
-            // Create chart data
-            const chartData = {
-                labels: ['Terkumpul', 'Sisa Target'],
-                datasets: [{
-                    data: [currentBalance, remaining],
-                    backgroundColor: [
-                        '#4CAF50',  // Green for achieved
-                        '#E0E0E0'   // Gray for remaining
-                    ],
-                    borderColor: [
-                        '#388E3C',
-                        '#BDBDBD'
-                    ],
-                    borderWidth: 2
-                }]
-            };
-            
-            // Create new chart
-            window.targetChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed;
-                                    const percentage = ((value / savingsTarget.amount) * 100).toFixed(1);
-                                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '60%',
-                    animation: {
-                        animateRotate: true,
-                        duration: 1000
-                    }
-                }
-            });
-            
-            // Add center text
-            const centerText = document.createElement('div');
-            centerText.className = 'chart-center-text';
-            centerText.innerHTML = `
-                <div class="center-percentage">${((currentBalance / savingsTarget.amount) * 100).toFixed(1)}%</div>
-                <div class="center-label">Tercapai</div>
             `;
-            
-            // Remove existing center text if any
-            const existingCenterText = chartContainer.querySelector('.chart-center-text');
-            if (existingCenterText) {
-                existingCenterText.remove();
-            }
-            
-            chartContainer.appendChild(centerText);
-            
-        } else {
-            // Hide chart if no target is set
-            chartContainer.style.display = 'none';
         }
-        
-        console.log('Savings target chart updated successfully');
     } catch (error) {
-        console.error('Error updating savings target chart:', error);
+        console.error('Error updating gold savings display:', error);
     }
 }
+
+function updateGoldPrice() {
+    const currentPrice = getGoldPrice();
+    const newPrice = prompt(`Masukkan harga emas per gram (Rp):`, currentPrice);
+    if (newPrice && !isNaN(newPrice) && parseFloat(newPrice) > 0) {
+        setGoldPrice(parseFloat(newPrice));
+        updateGoldSavingsDisplay();
+        showNotification('✅ Harga emas berhasil diperbarui!');
+    }
+}
+
 
 function displaySavingsHistory() {
     try {
@@ -1986,6 +1831,23 @@ budgetForm.addEventListener('submit', saveBudget);
 // Savings
 if (savingsForm) {
     savingsForm.addEventListener('submit', addSavingsTransaction);
+    
+    // Show/hide gold grams input when checkbox is toggled
+    const forGoldPurchaseCheckbox = document.getElementById('forGoldPurchase');
+    const goldGramsGroup = document.getElementById('goldGramsGroup');
+    if (forGoldPurchaseCheckbox && goldGramsGroup) {
+        forGoldPurchaseCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                goldGramsGroup.style.display = 'block';
+            } else {
+                goldGramsGroup.style.display = 'none';
+                const goldGramsInput = document.getElementById('goldGrams');
+                if (goldGramsInput) {
+                    goldGramsInput.value = '';
+                }
+            }
+        });
+    }
 }
 
 // Reports
